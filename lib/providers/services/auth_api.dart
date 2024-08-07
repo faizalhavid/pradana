@@ -5,11 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/data/RequestToken.dart';
 import 'package:pradana/providers/controllers/auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'auth_api.g.dart';
 
 @riverpod
 Future<RequestToken> createRequestToken(CreateRequestTokenRef ref) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
   final response = await http.get(
     Uri.parse('https://api.themoviedb.org/3/authentication/token/new'),
@@ -18,9 +21,9 @@ Future<RequestToken> createRequestToken(CreateRequestTokenRef ref) async {
       'Content-Type': 'application/json',
     },
   );
-  // print(response.body);
 
   if (response.statusCode == 200) {
+    prefs.setString('request_token', jsonDecode(response.body));
     return RequestToken.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Failed to create request token');
@@ -75,6 +78,7 @@ Future<String?> createSession(CreateSessionRef ref) async {
 
 @riverpod
 Future<String> createGuestSession(Ref ref) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
   final response = await http.get(
     Uri.parse('https://api.themoviedb.org/3/authentication/guest_session/new'),
@@ -84,8 +88,9 @@ Future<String> createGuestSession(Ref ref) async {
     },
   );
   print(response.body);
-
   if (response.statusCode == 200) {
+    prefs.setString(
+        'guest_session_id', jsonDecode(response.body)['guest_session_id']);
     return jsonDecode(response.body)['guest_session_id'];
   } else {
     throw Exception('Failed to create guest session');

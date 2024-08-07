@@ -159,19 +159,13 @@ class Welcomescreen extends ConsumerWidget {
     try {
       ref.read(loadingProvider.notifier).state = true;
 
-      // Step 1: Create request token
       final requestToken = await ref.read(createRequestTokenProvider.future);
-
       if (requestToken != null) {
         ref.read(requesttokenProvider.notifier).state = requestToken;
-
-        // Step 2: Create session ID
         final sessionId = await ref.read(createSessionIdProvider.future);
 
         if (sessionId != null) {
           ref.read(sessionIdProvider.notifier).state = sessionId;
-
-          // Step 3: Create session
           final session = await ref.read(createSessionProvider.future);
 
           if (session != null) {
@@ -214,21 +208,16 @@ class Welcomescreen extends ConsumerWidget {
     required BuildContext context,
   }) async {
     try {
-      ref.read(loadingProvider.notifier).state = true;
-      final requestToken = await ref.read(createRequestTokenProvider.future);
+      final guestSession = await ref.read(createGuestSessionProvider.future);
+      print(guestSession);
 
-      if (requestToken != null) {
-        final guestSession = await ref.read(createGuestSessionProvider.future);
-
-        if (guestSession != null) {
-          ref.read(guestSessionProvider.notifier).state = guestSession;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Guest session created')),
-          );
-          Navigator.pushReplacementNamed(context, '/dashboard');
-          ref.read(loadingProvider.notifier).state = false;
-        }
+      if (guestSession != null) {
+        ref.read(guestSessionProvider.notifier).state = guestSession;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Guest session created')),
+        );
+        Navigator.pushReplacementNamed(context, '/dashboard');
+        ref.read(loadingProvider.notifier).state = false;
       } else {
         ref.read(loadingProvider.notifier).state = false;
         ScaffoldMessenger.of(context).showSnackBar(

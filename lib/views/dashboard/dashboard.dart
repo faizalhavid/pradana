@@ -17,6 +17,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     HomeScreen(),
     Text('Search Page'),
     Text('Profile Page'),
+    Text('Profile Page'),
   ];
 
   void _onItemTapped(int index) {
@@ -51,11 +52,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: _buildIcon(Icons.search, 1),
-                label: 'Search',
+                icon: _buildIcon(Icons.bookmark, 1),
+                label: 'Watchlist',
               ),
               BottomNavigationBarItem(
-                icon: _buildIcon(Icons.person, 2),
+                icon: _buildIcon(Icons.favorite, 2),
+                label: 'Favorite',
+              ),
+              BottomNavigationBarItem(
+                icon: _buildIcon(
+                  Icons.person,
+                  3,
+                ),
                 label: 'Profile',
               ),
             ],

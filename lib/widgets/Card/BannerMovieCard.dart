@@ -22,48 +22,51 @@ class BannerMovieCard extends ConsumerWidget {
     return Container(
       child: Stack(
         children: [
-          Container(
-            width: size.width * 0.8,
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: double.infinity,
-                    child: FadeInImage.assetNetwork(
-                      placeholder: 'assets/images/placeholder.png',
-                      placeholderFit: BoxFit.cover,
-                      placeholderScale: 2,
-                      alignment: Alignment.centerRight,
-                      image:
-                          'https://image.tmdb.org/t/p/original/${movie.poster_path}',
-                      fit: BoxFit.cover,
-                      imageErrorBuilder: (context, error, stackTrace) {
-                        return Image.asset(
-                          'assets/images/placeholder.jpg',
-                          fit: BoxFit.cover,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: LinearGradient(
-                        colors: [
-                          ColorResources.neutral800.withOpacity(0.8),
-                          ColorResources.neutral800.withOpacity(0.3),
-                        ],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
+          Hero(
+            tag: movie.id,
+            child: Container(
+              width: size.width * 0.8,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: FadeInImage.assetNetwork(
+                        placeholder: 'assets/images/placeholder.png',
+                        placeholderFit: BoxFit.cover,
+                        placeholderScale: 2,
+                        alignment: Alignment.centerRight,
+                        image:
+                            'https://image.tmdb.org/t/p/original/${movie.poster_path}',
+                        fit: BoxFit.cover,
+                        imageErrorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'assets/images/placeholder.jpg',
+                            fit: BoxFit.cover,
+                          );
+                        },
                       ),
                     ),
                   ),
-                ),
-              ],
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          colors: [
+                            ColorResources.neutral800.withOpacity(0.8),
+                            ColorResources.neutral800.withOpacity(0.3),
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Container(
@@ -75,7 +78,8 @@ class BannerMovieCard extends ConsumerWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
                 onTap: () {
-                  print('Movie: ${movie.title}');
+                  Navigator.pushNamed(context, '/dashboard/detail-movie',
+                      arguments: movie);
                 },
                 child: Container(
                     padding: EdgeInsets.all(20),

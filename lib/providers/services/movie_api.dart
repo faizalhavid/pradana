@@ -67,3 +67,22 @@ Future<List<Genre>> getGenres(GetGenresRef ref) async {
     throw Exception('Failed to load genres');
   }
 }
+
+@riverpod
+Future<Movie> getMovieDetail(GetMovieDetailRef ref, int id) async {
+  final access_token = dotenv.env['API_ACCESS_TOKEN'];
+  final session = ref.read(sessionProvider.notifier).state ??
+      ref.read(guestSessionProvider.notifier).state;
+  final response = await http.get(
+      Uri.parse(
+          'https://api.themoviedb.org/3/movie/$id?language=en-US&session_id=$session'),
+      headers: {
+        'Authorization': 'Bearer $access_token',
+        'Content-Type': 'application/json',
+      });
+  if (response.statusCode == 200) {
+    return Movie.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load movie detail');
+  }
+}

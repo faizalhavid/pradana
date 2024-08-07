@@ -8,7 +8,7 @@ class ProductionCompany with _$ProductionCompany {
   const factory ProductionCompany({
     required int id,
     required String name,
-    String? logoPath,
+    String? logo_path,
     String? originCountry,
   }) = _ProductionCompany;
 

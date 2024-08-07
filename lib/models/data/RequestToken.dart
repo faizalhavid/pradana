@@ -7,8 +7,8 @@ part 'RequestToken.g.dart';
 class RequestToken with _$RequestToken {
   const factory RequestToken({
     required String request_token,
-    required bool success,
-    required String expires_at,
+    bool? success,
+    String? expires_at,
   }) = _RequestToken;
 
   factory RequestToken.fromJson(Map<String, dynamic> json) =>

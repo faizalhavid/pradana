@@ -5,16 +5,14 @@ import 'package:pradana/models/colors.dart';
 import 'package:pradana/models/data/Movie.dart';
 
 class InsightMovieCard extends StatelessWidget {
-  final Movie movies;
-  final VoidCallback _onTap;
+  final Movie movie;
 
-  InsightMovieCard({required this.movies, required VoidCallback onTap})
-      : _onTap = onTap;
+  const InsightMovieCard({super.key, required this.movie});
 
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: '${movies.title}-${movies.id}',
+      tag: movie.id,
       child: Container(
         constraints: BoxConstraints(
           maxWidth: 206,
@@ -31,7 +29,7 @@ class InsightMovieCard extends StatelessWidget {
                   placeholderFit: BoxFit.cover,
                   placeholderScale: 2,
                   image:
-                      'https://image.tmdb.org/t/p/original/${movies.poster_path}',
+                      'https://image.tmdb.org/t/p/original/${movie.poster_path}',
                   fit: BoxFit.cover,
                   imageErrorBuilder: (context, error, stackTrace) {
                     return Image.asset(
@@ -51,11 +49,13 @@ class InsightMovieCard extends StatelessWidget {
                   height: 260,
                   width: 206,
                   child: Material(
-                    color: Colors
-                        .transparent, // Make the material background transparent
+                    color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(20),
-                      onTap: _onTap,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/dashboard/detail-movie',
+                            arguments: movie);
+                      },
                       child: Container(
                         padding: EdgeInsets.all(20),
                         child: Row(
@@ -89,7 +89,7 @@ class InsightMovieCard extends StatelessWidget {
                                           size: 20,
                                         ),
                                         Text(
-                                          movies.vote_average
+                                          movie.vote_average
                                                   ?.toStringAsFixed(1) ??
                                               '',
                                           style: Theme.of(context)
@@ -142,14 +142,14 @@ class InsightMovieCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        movies.title ?? '',
+                        movie.title ?? '',
                         style: Theme.of(context).textTheme.bodyMedium,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: 5),
                       Text(
-                        'Release Date: ${movies.release_date ?? ''}',
+                        'Release Date: ${movie.release_date ?? ''}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: ColorResources.neutral400,
                             ),

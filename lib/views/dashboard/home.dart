@@ -83,10 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     scrollDirection: Axis.horizontal,
                     itemBuilder: (context, index) {
                       return InsightMovieCard(
-                        movies: movie[index],
-                        onTap: () {
-                          print('Movie: ${movie[index].title}');
-                        },
+                        movie: movie[index],
                       );
                     },
                     itemCount: movie.length,
