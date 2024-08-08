@@ -16,18 +16,23 @@ class DetailMovieScreen extends ConsumerStatefulWidget {
   _DetailMovieScreenState createState() => _DetailMovieScreenState();
 }
 
-class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
+class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
+  final _draggableScrollableSheetKey = GlobalKey();
+  final _draggableScrollableSheetController = DraggableScrollableController();
+
+  DraggableScrollableSheet get sheet =>
+      (_draggableScrollableSheetKey.currentWidget as DraggableScrollableSheet);
 
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: [SystemUiOverlay.bottom]);
-    _animationController = BottomSheet.createAnimationController(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showBottomSheet(MediaQuery.of(context).size);
+    _draggableScrollableSheetController.addListener(() {
+      final currentSize = _draggableScrollableSheetController.size;
+
+      if (currentSize <= 0.05) _animateSheet(sheet.snapSizes!.first);
+      if (currentSize >= 0.95) _animateSheet(sheet.snapSizes!.last);
     });
   }
 
@@ -35,347 +40,584 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen>
   Widget build(BuildContext context) {
     final AsyncValue<Movie> movieAsyncValue =
         ref.watch(getMovieDetailProvider(widget.movie.id));
+
     final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        Navigator.pop(context, result);
+      },
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        body: movieAsyncValue.when(
+          loading: () => Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Error: $err')),
+          data: (movie) => Stack(
+            children: [
+              renderBackdropPath(size, movie),
+              renderOverviewInformation(size, movie, context),
+              movie.status == 'Released'
+                  ? Positioned(
+                      right: size.width * 0.2,
+                      top: size.height * 0.2,
+                      child: Image.asset(
+                        'assets/icons/verified.png',
+                      ),
+                    )
+                  : SizedBox.shrink(),
+              renderScrollableBottomSheet(movie),
+            ],
+          ),
         ),
       ),
-      body: movieAsyncValue.when(
-        loading: () => Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-        data: (movie) => Stack(
-          children: [
-            Container(
-              height: size.height,
-              child: ColorFiltered(
-                colorFilter: ColorFilter.mode(
-                  ColorResources.neutral900.withOpacity(0.2),
-                  BlendMode.darken,
-                ),
-                child: FadeInImage.assetNetwork(
-                  placeholder: 'assets/images/placeholder.png',
-                  placeholderFit: BoxFit.cover,
-                  placeholderScale: 2,
-                  image:
-                      'https://image.tmdb.org/t/p/original/${movie.backdrop_path}',
-                  fit: BoxFit.cover,
-                  imageErrorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      'assets/images/placeholder.png',
-                      fit: BoxFit.cover,
-                    );
-                  },
-                ),
+    );
+  }
+
+  Column renderOverviewInformation(
+      Size size, Movie movie, BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        renderMoviePoster(size, movie),
+        Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                movie.title ?? '',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: ColorResources.neutral0,
+                    ),
               ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  height: size.height * 0.4,
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    color: Color.fromARGB(49, 255, 255, 255),
-                  ),
-                  child: Hero(
-                    tag: movie.id,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: FadeInImage.assetNetwork(
-                        placeholder: 'assets/images/placeholder.png',
-                        placeholderFit: BoxFit.cover,
-                        placeholderScale: 1,
-                        image:
-                            'https://image.tmdb.org/t/p/original/${movie.poster_path}',
-                        fit: BoxFit.cover,
-                        filterQuality: FilterQuality.low,
-                        imageErrorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/placeholder.jpg',
-                            fit: BoxFit.cover,
-                          );
-                        },
-                      ),
+              Row(
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: size.width * 0.5,
+                    ),
+                    child: Text(
+                      movie.tagline?.toUpperCase() ?? '',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: ColorResources.neutral50,
+                            fontWeight: FontWeight.w100,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      maxLines: 4,
                     ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    child: Icon(
+                      Icons.circle,
+                      color: ColorResources.neutral50,
+                      size: 10,
+                    ),
+                  ),
+                  Text(
+                    movie.adult! ? '18+' : '13+',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: ColorResources.neutral50,
+                          fontWeight: FontWeight.w100,
+                        ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    child: Icon(
+                      Icons.circle,
+                      color: ColorResources.neutral50,
+                      size: 10,
+                    ),
+                  ),
+                  Row(
                     children: [
-                      Text(
-                        movie.title ?? '',
-                        style:
-                            Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                  color: ColorResources.neutral0,
-                                ),
+                      Icon(
+                        Icons.star,
+                        color: ColorResources.neutral50,
+                        size: 20,
                       ),
                       Text(
-                        movie.overview ?? '',
+                        movie.vote_average!.toStringAsFixed(1),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: ColorResources.neutral0,
+                              color: ColorResources.neutral50,
+                              fontWeight: FontWeight.w100,
                             ),
                       ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      ClipRRect(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
+                    ],
+                  )
+                ],
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              renderMoviesLabelInformation(context, movie),
+              const SizedBox(
+                height: 20,
+              ),
+              renderMovieCompanyProduction(movie)
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Container renderBackdropPath(Size size, Movie movie) {
+    return Container(
+      height: size.height,
+      child: ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            ColorResources.neutral900.withOpacity(0.4),
+            BlendMode.darken,
+          ),
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              ColorResources.neutral900.withOpacity(0.8),
+              BlendMode.saturation,
+            ),
+            child: FadeInImage.assetNetwork(
+              placeholder: 'assets/images/placeholder.png',
+              placeholderFit: BoxFit.cover,
+              placeholderScale: 2,
+              image:
+                  'https://image.tmdb.org/t/p/original/${movie.backdrop_path}',
+              fit: BoxFit.cover,
+              imageErrorBuilder: (context, error, stackTrace) {
+                return Image.asset(
+                  'assets/images/placeholder.png',
+                  fit: BoxFit.cover,
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Positioned renderScrollableBottomSheet(Movie movie) {
+    return Positioned.fill(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return DraggableScrollableSheet(
+            key: _draggableScrollableSheetKey,
+            controller: _draggableScrollableSheetController,
+            initialChildSize: 0.08,
+            maxChildSize: 0.9,
+            minChildSize: 0,
+            expand: true,
+            snap: true,
+            snapSizes: [
+              70 / constraints.maxHeight,
+              0.35,
+              0.9,
+            ],
+            builder: (BuildContext context, ScrollController scrollController) {
+              return DecoratedBox(
+                decoration: const BoxDecoration(
+                  color: ColorResources.neutral0,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                ),
+                child: CustomScrollView(
+                  controller: scrollController,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Center(
+                              child: Container(
+                            height: 5,
+                            width: 50,
                             decoration: BoxDecoration(
-                              color: ColorResources.neutral0.withOpacity(0.1),
+                              color: ColorResources.neutral300,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Rating',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: ColorResources.neutral300,
-                                              fontWeight: FontWeight.w300,
-                                            ),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        movie.vote_average.toString(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                              color: ColorResources.neutral0,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Language',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: ColorResources.neutral300,
-                                              fontWeight: FontWeight.w300,
-                                            ),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        movie.spoken_languages?.first
-                                                .english_name
-                                                .toUpperCase() ??
-                                            '',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                              color: ColorResources.neutral0,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Likes',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: ColorResources.neutral300,
-                                              fontWeight: FontWeight.w300,
-                                            ),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        movie.vote_count.toString(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                              color: ColorResources.neutral0,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                          ))),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate(
+                          [
+                            Text('Overview',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      color: ColorResources.neutral900,
+                                    )),
+                            Text(movie.overview ?? '',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: ColorResources.neutral900,
+                                    )),
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              child: Text('Genres',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        color: ColorResources.neutral900,
+                                      )),
                             ),
-                          ),
+                            Wrap(
+                              spacing: 10.0,
+                              runSpacing: 10.0,
+                              children: movie.genres!.map((genre) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: ColorResources.neutral200,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    genre.name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: ColorResources.neutral900,
+                                        ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              child: Text('Production Countries',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        color: ColorResources.neutral900,
+                                      )),
+                            ),
+                            Wrap(
+                              spacing: 10.0,
+                              runSpacing: 10.0,
+                              children:
+                                  movie.production_countries!.map((country) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: ColorResources.neutral200,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    country.name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: ColorResources.neutral900,
+                                        ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              child: Text('Albums',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        color: ColorResources.neutral900,
+                                      )),
+                            ),
+                            Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 2),
+                                  height: 150,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: FadeInImage.assetNetwork(
+                                      placeholder:
+                                          'assets/images/placeholder.png',
+                                      image:
+                                          'https://image.tmdb.org/t/p/original/${movie.belongs_to_collection?.poster_path}',
+                                      imageErrorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Image.asset(
+                                          'assets/images/placeholder.png',
+                                          fit: BoxFit.cover,
+                                        );
+                                      },
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  movie.belongs_to_collection?.name ?? '',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: ColorResources.neutral900,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              child: Text('Languages',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        color: ColorResources.neutral900,
+                                      )),
+                            ),
+                            Wrap(
+                              spacing: 10.0,
+                              runSpacing: 10.0,
+                              children: movie.spoken_languages!.map((language) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: ColorResources.neutral200,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    language.english_name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: ColorResources.neutral900,
+                                        ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: () {
+                                // Navigator.pop(context);
+                              },
+                              child: Text('Add to Favorite'),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: ColorResources.neutral300,
+                                foregroundColor: ColorResources.neutral900,
+                              ),
+                              onPressed: () {
+                                // Navigator.pop(context);
+                              },
+                              child: Text('Add to Watchlist'),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Wrap(
-                        spacing: 10.0,
-                        runSpacing: 10.0,
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: movie.production_companies!.map((company) {
-                          return Tooltip(
-                            message: company.name,
-                            waitDuration: Duration(milliseconds: 500),
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: ColorResources.neutral0.withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(20),
-                                image: company.logo_path != null
-                                    ? DecorationImage(
-                                        image: NetworkImage(
-                                          'https://image.tmdb.org/t/p/original/${company.logo_path}',
-                                        ),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : null,
-                              ),
-                              child: company.logo_path == null
-                                  ? Center(
-                                      child: Icon(Icons.image_not_supported))
-                                  : null,
-                            ),
-                          );
-                        }).toList(),
-                      )
-                    ],
-                  ),
+                    )
+                  ],
                 ),
-              ],
-            ),
-            movie.status == 'Released'
-                ? Positioned(
-                    right: size.width * 0.2,
-                    top: size.height * 0.2,
-                    child: Image.asset(
-                      'assets/icons/verified.png',
-                    ),
-                  )
-                : SizedBox.shrink(),
-          ],
-        ),
-      ),
-      bottomSheet: BottomSheet(
-        onClosing: () {},
-        builder: (context) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            height: size.height * 0.2,
-            decoration: const BoxDecoration(
-              color: ColorResources.neutral0,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Genres',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: ColorResources.neutral900,
-                      ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
     );
   }
 
-  void _showBottomSheet(Size size) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize:
-              0.1, // Initial height as a fraction of the screen height (10% of the screen)
-          minChildSize: 0.05, // Minimum height (5% of the screen)
-          maxChildSize: 0.8,
-          builder: (context, scrollController) {
-            return Container(
-              padding: const EdgeInsets.all(20),
-              height: size.height * 0.2,
-              decoration: const BoxDecoration(
-                color: ColorResources.neutral0,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Genres',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: ColorResources.neutral900,
-                        ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                ],
-              ),
-            );
-          },
+  Container renderMoviePoster(Size size, Movie movie) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      height: size.height * 0.4,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+        color: Color.fromARGB(49, 255, 255, 255),
+      ),
+      child: Hero(
+        tag: movie.id,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: FadeInImage.assetNetwork(
+            placeholder: 'assets/images/placeholder.png',
+            placeholderFit: BoxFit.cover,
+            placeholderScale: 1,
+            image: 'https://image.tmdb.org/t/p/original/${movie.poster_path}',
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.low,
+            imageErrorBuilder: (context, error, stackTrace) {
+              return Image.asset(
+                'assets/images/placeholder.jpg',
+                fit: BoxFit.cover,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Wrap renderMovieCompanyProduction(Movie movie) {
+    return Wrap(
+      spacing: 10.0,
+      runSpacing: 10.0,
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: movie.production_companies!.map((company) {
+        return Tooltip(
+          message: company.name,
+          waitDuration: Duration(milliseconds: 500),
+          child: Container(
+            width: 50,
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              color: ColorResources.neutral0.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(20),
+              image: company.logo_path != null
+                  ? DecorationImage(
+                      image: NetworkImage(
+                        'https://image.tmdb.org/t/p/original/${company.logo_path}',
+                      ),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: company.logo_path == null
+                ? Center(child: Icon(Icons.image_not_supported))
+                : null,
+          ),
         );
-      },
-      isScrollControlled: true,
-      enableDrag: true,
+      }).toList(),
+    );
+  }
+
+  ClipRRect renderMoviesLabelInformation(BuildContext context, Movie movie) {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: ColorResources.neutral0.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Length',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: ColorResources.neutral300,
+                            fontWeight: FontWeight.w300,
+                          ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      '${movie.runtime! ~/ 60} H ${movie.runtime! % 60} M',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: ColorResources.neutral0,
+                          ),
+                    ),
+                  ],
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Language',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: ColorResources.neutral300,
+                            fontWeight: FontWeight.w300,
+                          ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      movie.spoken_languages?.first.english_name
+                              .toUpperCase() ??
+                          '',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: ColorResources.neutral0,
+                          ),
+                    ),
+                  ],
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Likes',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: ColorResources.neutral300,
+                            fontWeight: FontWeight.w300,
+                          ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      movie.vote_count.toString(),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: ColorResources.neutral0,
+                          ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _animateSheet(double size) {
+    _draggableScrollableSheetController.animateTo(
+      size,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
     );
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/colors.dart';
 import 'package:pradana/views/dashboard/home.dart';
+import 'package:pradana/views/dashboard/profile.dart';
+import 'package:pradana/views/dashboard/watchlist.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -15,9 +17,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    Text('Search Page'),
+    WatchlistScreen(),
     Text('Profile Page'),
-    Text('Profile Page'),
+    ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -26,47 +28,69 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
   }
 
+  Future<bool> _onWillPop() async {
+    if (_selectedIndex != 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-        child: Center(
-          child: _widgetOptions.elementAt(_selectedIndex),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        extendBody: true,
+        resizeToAvoidBottomInset: false,
+        body: Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 10,
+            bottom: 120,
+          ),
+          child: Center(
+            child: _widgetOptions.elementAt(_selectedIndex),
+          ),
         ),
-      ),
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(50.0),
-          child: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            selectedItemColor: ColorResources.secondaryColor,
-            onTap: _onItemTapped,
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
-            backgroundColor: ColorResources.neutral200,
-            items: <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: _buildIcon(Icons.movie, 0),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: _buildIcon(Icons.bookmark, 1),
-                label: 'Watchlist',
-              ),
-              BottomNavigationBarItem(
-                icon: _buildIcon(Icons.favorite, 2),
-                label: 'Favorite',
-              ),
-              BottomNavigationBarItem(
-                icon: _buildIcon(
-                  Icons.person,
-                  3,
+        bottomNavigationBar: Padding(
+          padding: EdgeInsets.only(bottom: 20, left: 20, right: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(50.0),
+            child: BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              useLegacyColorScheme: true,
+              selectedItemColor: ColorResources.secondaryColor,
+              onTap: _onItemTapped,
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              unselectedItemColor: ColorResources.neutral300,
+              backgroundColor: ColorResources.neutral300,
+              items: <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  icon: _buildIcon(Icons.movie, 0),
+                  label: 'Home',
                 ),
-                label: 'Profile',
-              ),
-            ],
+                BottomNavigationBarItem(
+                  icon: _buildIcon(Icons.bookmark, 1),
+                  label: 'Watchlist',
+                ),
+                BottomNavigationBarItem(
+                  icon: _buildIcon(Icons.favorite, 2),
+                  label: 'Favorite',
+                ),
+                BottomNavigationBarItem(
+                  icon: _buildIcon(
+                    Icons.person,
+                    3,
+                  ),
+                  label: 'Profile',
+                ),
+              ],
+            ),
           ),
         ),
       ),

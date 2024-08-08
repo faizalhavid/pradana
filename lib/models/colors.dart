@@ -11,7 +11,7 @@ class ColorResources {
   // Neutral Colors
   static const Color gray = Color(0xFFCECFCF);
   static const Color grayLight = Color(0xFFE0E0E0);
-  static const Color neutral0 = Color(0xFFF5F6F7);
+  static const Color neutral0 = Color.fromARGB(255, 255, 255, 255);
   static const Color neutral50 = Color(0xFFE0E0E0);
   static const Color neutral100 = Color(0xFFF5F6F7);
   static const Color neutral200 = Color(0xFFE0E0E0);

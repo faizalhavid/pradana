@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/colors.dart';
 import 'package:pradana/models/data/Genre.dart';
 import 'package:pradana/models/data/Movie.dart';
+import 'package:pradana/providers/controllers/movie.dart';
 import 'package:pradana/providers/services/movie_api.dart';
 
 class BannerMovieCard extends ConsumerWidget {
@@ -19,54 +20,66 @@ class BannerMovieCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<Genre>> genresAsyncValue =
         ref.watch(getGenresProvider);
+    final watchlistMovie = ref.watch(watchlistMovieProvider);
+    bool isAddedWatchlist = watchlistMovie.contains(movie);
+
+    void handleWatchlistButton() {
+      if (!isAddedWatchlist) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${movie.title} added to watch list movie !'),
+        ));
+        ref.read(watchlistMovieProvider.notifier).state.add(movie);
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('${movie.title} already added to watch list movie !'),
+      ));
+    }
+
     return Container(
       child: Stack(
         children: [
           Hero(
             tag: movie.id,
-            child: Container(
-              width: size.width * 0.8,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: FadeInImage.assetNetwork(
-                        placeholder: 'assets/images/placeholder.png',
-                        placeholderFit: BoxFit.cover,
-                        placeholderScale: 2,
-                        alignment: Alignment.centerRight,
-                        image:
-                            'https://image.tmdb.org/t/p/original/${movie.poster_path}',
-                        fit: BoxFit.cover,
-                        imageErrorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/placeholder.jpg',
-                            fit: BoxFit.cover,
-                          );
-                        },
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: SizedBox(
+                    width: size.width,
+                    // height: double.infinity,
+                    child: FadeInImage.assetNetwork(
+                      placeholder: 'assets/images/placeholder.png',
+                      placeholderFit: BoxFit.cover,
+                      placeholderScale: 2,
+                      alignment: Alignment.centerRight,
+                      image:
+                          'https://image.tmdb.org/t/p/original/${movie.poster_path}',
+                      fit: BoxFit.cover,
+                      imageErrorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/placeholder.jpg',
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        colors: [
+                          ColorResources.neutral800.withOpacity(0.8),
+                          ColorResources.neutral800.withOpacity(0.3),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
                       ),
                     ),
                   ),
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          colors: [
-                            ColorResources.neutral800.withOpacity(0.8),
-                            ColorResources.neutral800.withOpacity(0.3),
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Container(
@@ -78,8 +91,15 @@ class BannerMovieCard extends ConsumerWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
                 onTap: () {
+                  // Navigate to the detail movie screen
                   Navigator.pushNamed(context, '/dashboard/detail-movie',
-                      arguments: movie);
+                          arguments: movie)
+                      .then((_) {
+                    // This block will be executed when the user returns to this screen
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
+                  });
                 },
                 child: Container(
                     padding: EdgeInsets.all(20),
@@ -136,6 +156,43 @@ class BannerMovieCard extends ConsumerWidget {
                         ),
                       ],
                     )),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(
+                      Icons.favorite_border,
+                      color: ColorResources.neutral0,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      handleWatchlistButton();
+                    },
+                    icon: CircleAvatar(
+                      backgroundColor: isAddedWatchlist
+                          ? ColorResources.neutral0
+                          : Colors.transparent,
+                      child: Icon(
+                        isAddedWatchlist
+                            ? Icons.bookmark_add
+                            : Icons.bookmark_border,
+                        color: isAddedWatchlist
+                            ? ColorResources.secondaryColor
+                            : ColorResources.neutral0,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

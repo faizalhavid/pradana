@@ -1,21 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
 
 import 'package:pradana/models/colors.dart';
 import 'package:pradana/models/data/Movie.dart';
+import 'package:pradana/providers/controllers/movie.dart';
 
-class InsightMovieCard extends StatelessWidget {
+class InsightMovieCard extends ConsumerWidget {
   final Movie movie;
 
   const InsightMovieCard({super.key, required this.movie});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final watchlistMovie = ref.watch(watchlistMovieProvider);
+    bool isAddedWatchlist = watchlistMovie.contains(movie);
+
+    void handleWatchlistButton() {
+      if (!isAddedWatchlist) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${movie.title} added to watch list movie !'),
+        ));
+        ref.read(watchlistMovieProvider.notifier).state.add(movie);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${movie.title} already added to watch list movie !'),
+        ));
+      }
+    }
+
     return Hero(
       tag: movie.id,
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: 206,
+          maxWidth: 220,
         ),
         child: Stack(
           children: [
@@ -135,24 +153,53 @@ class InsightMovieCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 10),
-                Container(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        movie.title ?? '',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        'Release Date: ${movie.release_date ?? ''}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: ColorResources.neutral400,
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.35,
                             ),
+                            child: Text(
+                              movie.title ?? '',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            'Release Date: ${movie.release_date ?? ''}',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: ColorResources.neutral400,
+                                    ),
+                          ),
+                        ],
+                      ),
+                      Tooltip(
+                        message: 'Add to Watchlist',
+                        child: IconButton(
+                          onPressed: () {
+                            handleWatchlistButton();
+                          },
+                          icon: Icon(
+                            isAddedWatchlist
+                                ? Icons.bookmark
+                                : Icons.bookmark_add_outlined,
+                            color: isAddedWatchlist
+                                ? ColorResources.secondaryColor
+                                : ColorResources.neutral300,
+                          ),
+                        ),
                       ),
                     ],
                   ),
