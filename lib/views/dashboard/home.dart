@@ -7,6 +7,7 @@ import 'package:pradana/models/data/Actor.dart';
 import 'package:pradana/models/data/Movie.dart';
 import 'package:pradana/providers/services/actor_api.dart';
 import 'package:pradana/providers/services/movie_api.dart';
+import 'package:pradana/providers/theme.dart';
 import 'package:pradana/widgets/Card/BannerMovieCard.dart';
 import 'package:pradana/widgets/Card/InsightMovieCard.dart';
 import 'package:shimmer/shimmer.dart';
@@ -34,6 +35,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final AsyncValue<List<Actor>> popularActorAsyncValue =
         ref.watch(getPopularActorsProvider);
     final size = MediaQuery.of(context).size;
+    final theme = ref.watch(themeControllerProvider);
+
+    void handleChangeTheme() {
+      ref.read(themeControllerProvider.notifier).toggleTheme();
+    }
 
     return PopScope(
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
@@ -56,11 +62,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
+          actions: [
+            IconButton(
+              onPressed: () => handleChangeTheme(),
+              icon: Icon(
+                theme == ThemeMode.light ? Icons.dark_mode : Icons.light_mode,
+              ),
+            ),
+          ],
           automaticallyImplyLeading: false,
         ),
         body: RefreshIndicator(
           onRefresh: _refreshData,
           child: SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: 120),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,

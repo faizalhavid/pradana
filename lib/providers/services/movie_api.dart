@@ -44,7 +44,6 @@ Future<List<Movie>> getMoviesPopular(GetMoviesPopularRef ref) async {
       });
   if (response.statusCode == 200) {
     final List<dynamic> movieListJson = jsonDecode(response.body)['results'];
-    print(movieListJson);
     return movieListJson.map((json) => Movie.fromJson(json)).toList();
   } else {
     throw Exception('Failed to load movies');

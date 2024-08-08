@@ -36,7 +36,6 @@ Future<String> createSessionId(CreateSessionIdRef ref) async {
 
   final request_token =
       ref.read(requesttokenProvider.notifier).state?.request_token;
-  print('request_token: $request_token');
   final response = await http.get(
     Uri.parse('https://www.themoviedb.org/authenticate/$request_token'),
     headers: {
@@ -44,8 +43,6 @@ Future<String> createSessionId(CreateSessionIdRef ref) async {
       'Content-Type': 'application/json',
     },
   );
-
-  print(response.body);
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body)['session_id'];
@@ -87,7 +84,7 @@ Future<String> createGuestSession(Ref ref) async {
       'Content-Type': 'application/json',
     },
   );
-  print(response.body);
+
   if (response.statusCode == 200) {
     prefs.setString(
         'guest_session_id', jsonDecode(response.body)['guest_session_id']);

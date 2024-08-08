@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/colors.dart';
 import 'package:pradana/models/data/Movie.dart';
+import 'package:pradana/providers/controllers/movie.dart';
 import 'package:pradana/providers/services/movie_api.dart';
 
 class DetailMovieScreen extends ConsumerStatefulWidget {
@@ -26,8 +27,6 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: [SystemUiOverlay.bottom]);
     _draggableScrollableSheetController.addListener(() {
       final currentSize = _draggableScrollableSheetController.size;
 
@@ -36,10 +35,51 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
     });
   }
 
+  void _animateSheet(double size) {
+    _draggableScrollableSheetController.animateTo(
+      size,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final AsyncValue<Movie> movieAsyncValue =
         ref.watch(getMovieDetailProvider(widget.movie.id));
+
+    final bool isFavorite =
+        ref.watch(favoriteMovieProvider).contains(widget.movie);
+    final bool isWatchlist =
+        ref.watch(watchlistMovieProvider).contains(widget.movie);
+
+    void handleWatchlistButton() {
+      if (isWatchlist) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${widget.movie.title} added to watch list movie!'),
+        ));
+        ref.read(watchlistMovieProvider.notifier).removeMovie(widget.movie);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${widget.movie.title} added to watch list movie!'),
+        ));
+        ref.read(watchlistMovieProvider.notifier).addMovie(widget.movie);
+      }
+    }
+
+    void handleFavoriteButton() {
+      if (isFavorite) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${widget.movie.title} removed from favorite movie!'),
+        ));
+        ref.read(favoriteMovieProvider.notifier).removeMovie(widget.movie);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${widget.movie.title} added to favorite movie!'),
+        ));
+        ref.read(favoriteMovieProvider.notifier).addMovie(widget.movie);
+      }
+    }
 
     final size = MediaQuery.of(context).size;
 
@@ -76,7 +116,8 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
                       ),
                     )
                   : SizedBox.shrink(),
-              renderScrollableBottomSheet(movie),
+              renderScrollableBottomSheet(movie, handleWatchlistButton,
+                  handleFavoriteButton, isWatchlist, isFavorite),
             ],
           ),
         ),
@@ -210,7 +251,13 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
     );
   }
 
-  Positioned renderScrollableBottomSheet(Movie movie) {
+  Positioned renderScrollableBottomSheet(
+    Movie movie,
+    void Function() onTapwatchlistButton,
+    void Function() onTapFavoriteButton,
+    bool isWatchlist,
+    bool isFavorite,
+  ) {
     return Positioned.fill(
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -424,9 +471,10 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
                             SizedBox(height: 20),
                             ElevatedButton(
                               onPressed: () {
-                                // Navigator.pop(context);
+                                onTapFavoriteButton();
                               },
-                              child: Text('Add to Favorite'),
+                              child: Text(
+                                  '${isFavorite ? 'Remove from' : 'Add to'} Favorite'),
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
@@ -434,9 +482,10 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
                                 foregroundColor: ColorResources.neutral900,
                               ),
                               onPressed: () {
-                                // Navigator.pop(context);
+                                onTapwatchlistButton();
                               },
-                              child: Text('Add to Watchlist'),
+                              child: Text(
+                                  '${isWatchlist ? 'Remove from' : 'Add to'} Watchlist'),
                             ),
                           ],
                         ),
@@ -610,14 +659,6 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _animateSheet(double size) {
-    _draggableScrollableSheetController.animateTo(
-      size,
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
     );
   }
 }

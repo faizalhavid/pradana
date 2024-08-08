@@ -209,7 +209,6 @@ class Welcomescreen extends ConsumerWidget {
   }) async {
     try {
       final guestSession = await ref.read(createGuestSessionProvider.future);
-      print(guestSession);
 
       if (guestSession != null) {
         ref.read(guestSessionProvider.notifier).state = guestSession;

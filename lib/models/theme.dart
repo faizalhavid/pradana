@@ -18,9 +18,25 @@ class ThemeModel {
           primaryColor: ColorResources.primaryColor,
           primaryColorDark: ColorResources.primaryDarkColor,
           hintColor: ColorResources.secondaryColor,
-          scaffoldBackgroundColor: ColorResources.neutral0,
-          appBarTheme: AppBarTheme(
-            backgroundColor: ColorResources.neutral0,
+          scaffoldBackgroundColor: ColorResources.neutral100,
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: ColorResources.primaryColor,
+            elevation: 0,
+            selectedItemColor: ColorResources.primaryColor,
+            unselectedItemColor: ColorResources.neutral500,
+            selectedLabelStyle: TextStyle(
+              fontFamily: 'SFProDisplay',
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontFamily: 'SFProDisplay',
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: ColorResources.neutral100,
             elevation: 0,
             iconTheme: IconThemeData(color: ColorResources.neutral800),
             titleTextStyle: TextStyle(
@@ -29,13 +45,11 @@ class ThemeModel {
               fontWeight: FontWeight.bold,
               color: ColorResources.neutral800,
             ),
+            surfaceTintColor: ColorResources.neutral0,
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: ColorResources.neutral0,
               statusBarIconBrightness: Brightness.dark,
             ),
-          ),
-          buttonBarTheme: ButtonBarThemeData(
-            alignment: MainAxisAlignment.center,
           ),
           buttonTheme: ButtonThemeData(
             buttonColor: ColorResources.primaryColor,
@@ -102,6 +116,7 @@ class ThemeModel {
           hintColor: ColorResources.secondaryColor,
           scaffoldBackgroundColor: ColorResources.neutral900,
           appBarTheme: AppBarTheme(
+            surfaceTintColor: ColorResources.neutral0,
             backgroundColor: ColorResources.neutral900,
             elevation: 0,
             iconTheme: IconThemeData(color: ColorResources.neutral0),
@@ -115,9 +130,6 @@ class ThemeModel {
               statusBarColor: ColorResources.neutral900,
               statusBarIconBrightness: Brightness.light,
             ),
-          ),
-          buttonBarTheme: ButtonBarThemeData(
-            alignment: MainAxisAlignment.center,
           ),
           buttonTheme: ButtonThemeData(
             buttonColor: ColorResources.primaryColor,

@@ -7,6 +7,7 @@ import 'package:pradana/views/auth/login.dart';
 import 'package:pradana/views/auth/welcome.dart';
 import 'package:pradana/views/dashboard/dashboard.dart';
 import 'package:pradana/views/dashboard/detail_movie.dart';
+import 'package:pradana/views/dashboard/favorite.dart';
 import 'package:pradana/views/dashboard/home.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pradana/views/dashboard/watchlist.dart';
@@ -39,7 +40,8 @@ class MyApp extends ConsumerWidget {
           '/auth/login': (context) => LoginScreen(),
           '/dashboard': (context) => DashboardScreen(),
           '/dashboard/home': (context) => HomeScreen(),
-          '/dashboard/watchlist': (context) => WatchlistScreen()
+          '/dashboard/watchlist': (context) => WatchlistScreen(),
+          '/dashboard/favorite': (context) => FavoriteScreen(),
         };
 
         // Handle /dashboard/detail-movie route with arguments
