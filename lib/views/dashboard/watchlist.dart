@@ -39,7 +39,7 @@ class WatchlistScreen extends ConsumerWidget {
           IconButton(
             onPressed: () => handleChangeTheme(),
             icon: Icon(
-              isDarkMode ? Icons.dark_mode : Icons.light_mode,
+              isDarkMode ? Icons.light_mode : Icons.dark_mode,
             ),
           ),
         ],

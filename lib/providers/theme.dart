@@ -20,5 +20,6 @@ final themeModelProvider = Provider<ThemeModel>((ref) {
 final themeControllerProvider =
     StateNotifierProvider<ThemeController, ThemeData>((ref) {
   final themeModel = ref.watch(themeModelProvider);
-  return ThemeController(themeModel);
+  final brightness = WidgetsBinding.instance.window.platformBrightness;
+  return ThemeController(themeModel, brightness);
 });

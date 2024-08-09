@@ -7,15 +7,17 @@ import 'package:pradana/models/theme.dart';
 /// Kelas ini menggunakan `StateNotifier` untuk mengelola state berupa `ThemeData`.
 /// `ThemeController` menyediakan metode untuk mengganti tema antara tema terang
 /// dan tema gelap.
-
 class ThemeController extends StateNotifier<ThemeData> {
   /// Model tema yang berisi tema terang dan tema gelap.
   final ThemeModel _themes;
 
   /// Konstruktor untuk `ThemeController`.
   ///
-  /// Menginisialisasi state dengan tema terang dari `_themes`.
-  ThemeController(this._themes) : super(_themes.lightTheme);
+  /// Menginisialisasi state dengan tema berdasarkan brightness dari `_themes`.
+  ThemeController(this._themes, Brightness initialBrightness)
+      : super(initialBrightness == Brightness.light
+            ? _themes.lightTheme
+            : _themes.darkTheme);
 
   /// Mengganti tema aplikasi.
   ///
