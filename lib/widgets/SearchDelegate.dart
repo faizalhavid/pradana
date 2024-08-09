@@ -3,6 +3,19 @@ import 'package:pradana/models/colors.dart';
 import 'package:pradana/models/data/Movie.dart';
 import 'package:pradana/widgets/Card/BannerMovieCard.dart';
 
+/// Kelas `CustomSearchDelegate` untuk menangani pencarian film.
+///
+/// Kelas ini menggunakan `SearchDelegate` untuk menyediakan antarmuka pencarian
+/// yang dapat disesuaikan.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `data` (List<Movie>): Daftar film yang akan dicari.
+///
+/// Metode `buildActions` membangun daftar aksi di AppBar pencarian, seperti tombol untuk menghapus query.
+/// Metode `buildLeading` membangun ikon di sebelah kiri AppBar pencarian, seperti tombol kembali.
+/// Metode `buildResults` membangun tampilan hasil pencarian berdasarkan query yang dimasukkan.
+/// Metode `appBarTheme` mengatur tema AppBar pencarian.
+/// Metode `buildSuggestions` membangun daftar saran berdasarkan query yang dimasukkan.
 class CustomSearchDelegate extends SearchDelegate {
   final List<Movie> data;
 

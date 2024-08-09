@@ -13,6 +13,19 @@ import 'package:pradana/widgets/Card/InsightMovieCard.dart';
 import 'package:pradana/widgets/SearchDelegate.dart';
 import 'package:shimmer/shimmer.dart';
 
+/// Kelas `HomeScreen` untuk menampilkan layar utama aplikasi.
+///
+/// Kelas ini menggunakan `ConsumerStatefulWidget` untuk memungkinkan konsumsi
+/// state dari provider.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `_refreshData` (Future<void> Function()): Metode untuk merefresh data.
+/// - `movieNowPlayingAsyncValue` (AsyncValue<List<Movie>>): Data film yang sedang tayang.
+/// - `moviePopularAsyncValue` (AsyncValue<List<Movie>>): Data film populer.
+/// - `popularActorAsyncValue` (AsyncValue<List<Actor>>): Data aktor populer.
+/// - `size` (Size): Ukuran layar perangkat.
+/// - `isDarkMode` (bool): Menunjukkan apakah mode gelap sedang aktif.
+/// - `handleChangeTheme` (void Function()): Metode untuk mengubah tema aplikasi.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 

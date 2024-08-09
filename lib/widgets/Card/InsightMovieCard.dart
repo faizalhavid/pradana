@@ -7,6 +7,17 @@ import 'package:pradana/models/colors.dart';
 import 'package:pradana/models/data/Movie.dart';
 import 'package:pradana/providers/controllers/movie.dart';
 
+/// Kelas `InsightMovieCard` untuk menampilkan kartu film dengan informasi detail.
+///
+/// Kelas ini menggunakan `ConsumerWidget` untuk memungkinkan konsumsi
+/// state dari provider.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `movie` (Movie): Objek film yang akan ditampilkan dalam kartu.
+///
+/// Kelas ini juga menyediakan beberapa metode untuk menangani aksi tombol:
+/// - `handleWatchlistButton`: Menambahkan atau menghapus film dari daftar watchlist.
+/// - `handleFavoriteButton`: Menambahkan atau menghapus film dari daftar favorit.
 class InsightMovieCard extends ConsumerWidget {
   final Movie movie;
 

@@ -5,6 +5,20 @@ import 'package:pradana/providers/controllers/movie.dart';
 import 'package:pradana/providers/theme.dart';
 import 'package:pradana/widgets/Card/InsightMovieCard.dart';
 
+/// Kelas `ProfileScreen` untuk menampilkan profil pengguna dan daftar film.
+///
+/// Kelas ini menggunakan `ConsumerStatefulWidget` untuk memungkinkan konsumsi
+/// state dari provider.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `_tabController` (TabController): Pengontrol tab untuk mengelola perpindahan antar tab.
+/// - `initState` (void): Metode untuk inisialisasi state.
+/// - `dispose` (void): Metode untuk membersihkan state.
+/// - `build` (Widget): Metode untuk membangun tampilan layar.
+/// - `size` (Size): Ukuran layar.
+/// - `watchListMovie` (List<Movie>): Daftar film watchlist.
+/// - `favoriteMovie` (List<Movie>): Daftar film favorit.
+/// - `isDarkMode` (bool): Status tema gelap.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 

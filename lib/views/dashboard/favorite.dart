@@ -4,6 +4,19 @@ import 'package:pradana/providers/controllers/movie.dart';
 import 'package:pradana/providers/theme.dart';
 import 'package:pradana/widgets/Card/BannerMovieCard.dart';
 
+/// Kelas `FavoriteScreen` untuk menampilkan daftar film favorit.
+///
+/// Kelas ini menggunakan `ConsumerWidget` untuk memungkinkan konsumsi
+/// state dari provider.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `favoriteMovie` (List<Movie?>): Daftar film favorit yang diambil dari provider.
+/// - `size` (Size): Ukuran layar perangkat.
+/// - `isDarkMode` (bool): Menunjukkan apakah mode gelap sedang aktif.
+///
+/// Kelas ini juga menyediakan metode `handleChangeTheme` untuk mengubah tema aplikasi.
+///
+/// Metode `build` membangun tampilan layar dengan AppBar dan daftar film favorit.
 class FavoriteScreen extends ConsumerWidget {
   const FavoriteScreen({super.key});
 
@@ -22,7 +35,7 @@ class FavoriteScreen extends ConsumerWidget {
       appBar: AppBar(
         centerTitle: false,
         titleSpacing: 0,
-        title: Text('Favorite Movies 🎞️'),
+        title: Text('Film Favorit 🎞️'),
         actions: [
           IconButton(
             onPressed: () => handleChangeTheme(),
@@ -40,7 +53,7 @@ class FavoriteScreen extends ConsumerWidget {
             if (favoriteMovie == null) {
               return Center(
                 child: Column(
-                  children: [Text('No data')],
+                  children: [Text('Tidak ada data')],
                 ),
               );
             }

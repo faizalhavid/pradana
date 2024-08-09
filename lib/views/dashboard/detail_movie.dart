@@ -8,6 +8,27 @@ import 'package:pradana/models/data/Movie.dart';
 import 'package:pradana/providers/controllers/movie.dart';
 import 'package:pradana/providers/services/movie_api.dart';
 
+/// Kelas `DetailMovieScreen` untuk menampilkan detail film.
+///
+/// Kelas ini menggunakan `ConsumerStatefulWidget` untuk memungkinkan konsumsi
+/// state dari provider.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `_dragableScrollableSheetKey` (GlobalKey): Kunci untuk mengakses `DraggableScrollableSheet`.
+/// - `_dragableScrollableSheetController` (DraggableScrollableController): Controller untuk mengontrol `DraggableScrollableSheet`.
+/// - `sheet` (DraggableScrollableSheet): Getter untuk mengakses `DraggableScrollableSheet`.
+/// - `_animateSheet` (void Function(double)): Metode untuk menganimasikan `DraggableScrollableSheet`.
+/// - `build` (BuildContext): Metode untuk membangun tampilan layar.
+/// - `initState` (): Metode untuk inisialisasi state. yang digunakan untuk mengatur listener pada controller.
+/// - `handleWatchlistButton` (): Metode untuk menangani aksi tombol watchlist.
+/// - `handleFavoriteButton` (): Metode untuk menangani aksi tombol favorit.
+/// - `renderBackdropPath` (Size, Movie): Metode untuk membangun tampilan latar belakang.
+/// - `renderOverviewInformation` (Size, Movie, BuildContext): Metode untuk membangun tampilan informasi film.
+/// - `renderScrollableBottomSheet` (Movie, void Function(), void Function(), bool, bool): Metode untuk membangun tampilan `DraggableScrollableSheet`.
+/// - `renderMoviePoster` (Size, Movie): Metode untuk membangun tampilan poster film.
+/// - `renderMovieCompanyProduction` (Movie): Metode untuk membangun tampilan perusahaan produksi film.
+/// - `renderMoviesLabelInformation` (BuildContext, Movie): Metode untuk membangun tampilan label informasi film.
+/// - `DetailMovieScreen` ({Movie}): Konstruktor untuk `DetailMovieScreen`.
 class DetailMovieScreen extends ConsumerStatefulWidget {
   final Movie movie;
 
@@ -45,6 +66,7 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     final AsyncValue<Movie> movieAsyncValue =
         ref.watch(getMovieDetailProvider(widget.movie.id));
 
@@ -80,8 +102,6 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
         ref.read(favoriteMovieProvider.notifier).addMovie(widget.movie);
       }
     }
-
-    final size = MediaQuery.of(context).size;
 
     return PopScope(
       canPop: false,

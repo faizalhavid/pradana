@@ -4,6 +4,17 @@ import 'package:pradana/providers/controllers/movie.dart';
 import 'package:pradana/providers/theme.dart';
 import 'package:pradana/widgets/Card/BannerMovieCard.dart';
 
+/// Kelas `WatchlistScreen` untuk menampilkan daftar film watchlist.
+///
+/// Kelas ini menggunakan `ConsumerWidget` untuk memungkinkan konsumsi
+/// state dari provider.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `watchListMovie` (List<Movie?>): Daftar film watchlist yang diambil dari provider.
+/// - `size` (Size): Ukuran layar perangkat.
+/// - `isDarkMode` (bool): Menunjukkan apakah mode gelap sedang aktif.
+/// - `handleChangeTheme` (void): Metode untuk mengganti tema aplikasi.
+
 class WatchlistScreen extends ConsumerWidget {
   const WatchlistScreen({super.key});
 

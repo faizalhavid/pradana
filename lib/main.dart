@@ -12,19 +12,25 @@ import 'package:pradana/views/dashboard/home.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pradana/views/dashboard/watchlist.dart';
 
-/// The entry point of the application.
+/// Entry point aplikasi.
 ///
-/// This function ensures that the Flutter framework is properly initialized,
-/// loads environment variables from a `.env` file, and then runs the application
-/// using the `ProviderScope` and `MyApp` widgets.
+/// Fungsi ini memastikan bahwa kerangka Flutter diinisialisasi dengan benar.
+/// Memuat variabel lingkungan dari file `.env` dan kemudian menjalankan aplikasi
+/// menggunakan `ProviderScope` dan widget `MyApp`.
+///
+/// Langkah-langkah:
+/// 1. Memastikan inisialisasi kerangka Flutter menggunakan `WidgetsFlutterBinding.ensureInitialized`.
+/// 2. Memuat variabel lingkungan dari file `.env` menggunakan `dotenv.load`.
+/// 3. Menjalankan aplikasi dengan `runApp` dan membungkusnya dalam `ProviderScope` untuk
+///    mengaktifkan state management berbasis provider.
 void main() async {
-  // Ensures that the Flutter framework is properly initialized.
+  // Memastikan bahwa kerangka Flutter diinisialisasi dengan benar.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Loads environment variables from the .env file.
+  // Memuat variabel lingkungan dari file `.env`.
   await dotenv.load(fileName: ".env");
 
-  // Runs the application with ProviderScope and MyApp widgets.
+  // Menjalankan aplikasi menggunakan `ProviderScope` dan widget `MyApp`.
   runApp(
     ProviderScope(
       child: MyApp(),
@@ -32,16 +38,26 @@ void main() async {
   );
 }
 
+/// Kelas MyApp yang merupakan widget utama aplikasi.
+///
+/// Kelas ini menggunakan `ConsumerWidget` dari paket Riverpod untuk mengelola
+/// state dan tema aplikasi. Widget ini membangun aplikasi dengan menggunakan
+/// `MaterialApp` dan mendefinisikan rute-rute yang tersedia dalam aplikasi.
 class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Mengambil tema aplikasi dari provider.
     final theme = ref.watch(themeControllerProvider);
+    // Mengambil rute awal dari provider.
     final initialRouteAsync = ref.watch(initialRouteProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: theme,
       onGenerateRoute: (settings) {
+        // Mendefinisikan rute-rute yang tersedia dalam aplikasi.
         final routes = {
           '/auth/welcome': (context) => Welcomescreen(),
           '/auth/login': (context) => LoginScreen(),
@@ -50,6 +66,7 @@ class MyApp extends ConsumerWidget {
           '/dashboard/watchlist': (context) => WatchlistScreen(),
           '/dashboard/favorite': (context) => FavoriteScreen(),
         };
+        // Menangani rute khusus untuk rute yang memerlukan argumen.
         if (settings.name == '/dashboard/detail-movie') {
           final Movie movie = settings.arguments as Movie;
           return MaterialPageRoute(
@@ -57,9 +74,11 @@ class MyApp extends ConsumerWidget {
           );
         }
 
+        // Mengembalikan rute yang sesuai atau rute default.
         final builder = routes[settings.name] ?? (context) => Welcomescreen();
         return MaterialPageRoute(builder: builder);
       },
+      // Menentukan widget awal berdasarkan hasil dari `initialRouteAsync`.
       home: initialRouteAsync.when(
         data: (route) {
           switch (route) {

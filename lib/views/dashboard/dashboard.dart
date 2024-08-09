@@ -7,6 +7,20 @@ import 'package:pradana/views/dashboard/home.dart';
 import 'package:pradana/views/dashboard/profile.dart';
 import 'package:pradana/views/dashboard/watchlist.dart';
 
+/// Kelas `DashboardScreen` untuk merepresentasikan layar utama aplikasi.
+///
+/// Kelas ini menggunakan `ConsumerStatefulWidget` untuk memungkinkan konsumsi
+/// state dari provider.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `_selectedIndex` (int): Indeks tab yang dipilih saat ini.
+/// - `_widgetOptions` (List<Widget>): Daftar widget yang ditampilkan berdasarkan tab yang dipilih.
+/// - `_onItemTapped` (void Function(int)): Metode untuk menangani perubahan tab.
+/// - `_onWillPop` (Future<bool> Function()): Metode untuk menangani aksi kembali (back) pada perangkat.
+///
+/// Kelas ini juga menyediakan metode `_buildIcon` untuk membangun ikon dengan
+/// indikator seleksi.
+
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
