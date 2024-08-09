@@ -12,13 +12,20 @@ import 'package:pradana/views/dashboard/home.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pradana/views/dashboard/watchlist.dart';
 
+/// The entry point of the application.
+///
+/// This function ensures that the Flutter framework is properly initialized,
+/// loads environment variables from a `.env` file, and then runs the application
+/// using the `ProviderScope` and `MyApp` widgets.
 void main() async {
+  // Ensures that the Flutter framework is properly initialized.
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Loads environment variables from the .env file.
   await dotenv.load(fileName: ".env");
+
+  // Runs the application with ProviderScope and MyApp widgets.
   runApp(
-    // For widgets to be able to read providers, we need to wrap the entire
-    // application in a "ProviderScope" widget.
-    // This is where the state of our providers will be stored.
     ProviderScope(
       child: MyApp(),
     ),
@@ -43,8 +50,6 @@ class MyApp extends ConsumerWidget {
           '/dashboard/watchlist': (context) => WatchlistScreen(),
           '/dashboard/favorite': (context) => FavoriteScreen(),
         };
-
-        // Handle /dashboard/detail-movie route with arguments
         if (settings.name == '/dashboard/detail-movie') {
           final Movie movie = settings.arguments as Movie;
           return MaterialPageRoute(

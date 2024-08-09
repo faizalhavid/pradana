@@ -107,8 +107,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       separatorBuilder: (context, index) => SizedBox(width: 10),
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) {
-                        return InsightMovieCard(
-                          movie: movie[index],
+                        return Container(
+                          constraints: BoxConstraints(
+                            maxWidth: size.width * 0.4,
+                          ),
+                          child: InsightMovieCard(
+                            movie: movie[index],
+                          ),
                         );
                       },
                       itemCount: movie.length,

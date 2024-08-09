@@ -34,6 +34,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final favoriteMovie = ref.watch(favoriteMovieProvider);
     return Scaffold(
       body: SingleChildScrollView(
+        padding: EdgeInsets.only(top: 60),
         child: Container(
           width: double.infinity,
           child: Column(
@@ -42,21 +43,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundImage: FadeInImage.assetNetwork(
-                  placeholder: 'assets/images/placeholder.png',
-                  image: 'https://via.placeholder.com/150',
-                ).image,
+                backgroundImage: AssetImage('assets/images/user_profile.jpg'),
               ),
               SizedBox(height: 10),
-              Text(
+              const Text(
                 'Pradana',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text('@pradana'),
-              SizedBox(height: 20),
+              const Text('@pradana'),
+              const SizedBox(height: 20),
               Container(
                 decoration: BoxDecoration(
                   color: ColorResources.neutral0,
@@ -72,7 +70,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text('1000'),
+                        Text(watchListMovie.length.toString()),
                         Text('Watchlist'),
                       ],
                     ),
@@ -80,7 +78,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text('1000'),
+                        Text(favoriteMovie.length.toString()),
                         Text('Favorite'),
                       ],
                     ),
@@ -105,49 +103,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   controller: _tabController,
                   children: [
                     Container(
-                        width: size.width,
-                        height: size.height,
-                        child: GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10.0,
-                            mainAxisSpacing: 10.0,
-                          ),
-                          itemBuilder: (context, index) {
-                            if (watchListMovie == null) {
-                              return Center(
-                                child: Column(
-                                  children: [Text('No data')],
-                                ),
-                              );
-                            }
-                            return Container(
-                              child: InsightMovieCard(
-                                movie: watchListMovie[index]!,
-                              ),
-                            );
-                          },
-                          itemCount: watchListMovie?.length ??
-                              0, // Number of items in the grid
-                        )),
-                    Container(
+                      width: size.width,
                       height: size.height,
-                      child: ListView.separated(
-                        separatorBuilder: (context, index) =>
-                            SizedBox(height: 10),
+                      child: GridView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // Number of items per row
+                          mainAxisExtent: size.height *
+                              0.4, // Control the height of each item
+                          crossAxisSpacing:
+                              10.0, // Spacing between items in the cross axis
+                          mainAxisSpacing:
+                              10.0, // Spacing between items in the main axis
+                          childAspectRatio:
+                              1.0, // Aspect ratio to control height vs width
+                        ),
                         itemBuilder: (context, index) {
-                          if (favoriteMovie == null) {
-                            return Center(
-                              child: Column(
-                                children: [Text('No data')],
-                              ),
-                            );
-                          }
-                          return Container(
-                            child: InsightMovieCard(
-                              movie: favoriteMovie[index]!,
-                            ),
+                          return InsightMovieCard(
+                            movie: watchListMovie[index]!,
+                          );
+                        },
+                        itemCount: watchListMovie?.length ?? 0,
+                      ),
+                    ),
+                    Container(
+                      width: size.width,
+                      height: size.height,
+                      child: GridView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // Number of items per row
+                          mainAxisExtent: size.height *
+                              0.4, // Control the height of each item
+                          crossAxisSpacing:
+                              10.0, // Spacing between items in the cross axis
+                          mainAxisSpacing:
+                              10.0, // Spacing between items in the main axis
+                          childAspectRatio:
+                              1.0, // Aspect ratio to control height vs width
+                        ),
+                        itemBuilder: (context, index) {
+                          return InsightMovieCard(
+                            movie: favoriteMovie[index],
                           );
                         },
                         itemCount: favoriteMovie.length,

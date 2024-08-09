@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pradana/models/colors.dart';
 import 'package:pradana/models/data/Genre.dart';
 import 'package:pradana/models/data/Movie.dart';
@@ -21,33 +22,59 @@ class BannerMovieCard extends ConsumerWidget {
     final AsyncValue<List<Genre>> genresAsyncValue =
         ref.watch(getGenresProvider);
 
-    final bool isFavorite = ref.watch(favoriteMovieProvider).contains(movie);
-    final bool isWatchlist = ref.watch(watchlistMovieProvider).contains(movie);
+    final bool isFavorite =
+        ref.watch(favoriteMovieProvider).map((m) => m.id).contains(movie.id);
+    final bool isWatchlist =
+        ref.watch(watchlistMovieProvider).map((m) => m.id).contains(movie.id);
 
     void handleWatchlistButton() {
       if (isWatchlist) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${movie.title} removed from watch list movie!'),
-        ));
+        Fluttertoast.showToast(
+          msg: '${movie.title} removed from watch list movie!',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         ref.read(watchlistMovieProvider.notifier).removeMovie(movie);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${movie.title} added to watch list movie!'),
-        ));
+        Fluttertoast.showToast(
+          msg: '${movie.title} added to watch list movie!',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         ref.read(watchlistMovieProvider.notifier).addMovie(movie);
       }
     }
 
     void handleFavoriteButton() {
       if (isFavorite) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${movie.title} removed from favorite movie!'),
-        ));
+        Fluttertoast.showToast(
+          msg: '${movie.title} removed from favorite movie!',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         ref.read(favoriteMovieProvider.notifier).removeMovie(movie);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${movie.title} added to favorite movie!'),
-        ));
+        Fluttertoast.showToast(
+          msg: '${movie.title} added to favorite movie!',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         ref.read(favoriteMovieProvider.notifier).addMovie(movie);
       }
     }
