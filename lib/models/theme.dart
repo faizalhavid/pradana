@@ -116,7 +116,7 @@ class ThemeModel {
           hintColor: ColorResources.secondaryColor,
           scaffoldBackgroundColor: ColorResources.neutral900,
           appBarTheme: AppBarTheme(
-            surfaceTintColor: ColorResources.neutral0,
+            surfaceTintColor: ColorResources.neutral900,
             backgroundColor: ColorResources.neutral900,
             elevation: 0,
             iconTheme: IconThemeData(color: ColorResources.neutral0),

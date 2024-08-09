@@ -10,6 +10,7 @@ import 'package:pradana/providers/services/movie_api.dart';
 import 'package:pradana/providers/theme.dart';
 import 'package:pradana/widgets/Card/BannerMovieCard.dart';
 import 'package:pradana/widgets/Card/InsightMovieCard.dart';
+import 'package:pradana/widgets/SearchDelegate.dart';
 import 'package:shimmer/shimmer.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -35,7 +36,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final AsyncValue<List<Actor>> popularActorAsyncValue =
         ref.watch(getPopularActorsProvider);
     final size = MediaQuery.of(context).size;
-    final theme = ref.watch(themeControllerProvider);
+    final bool isDarkMode =
+        ref.watch(themeControllerProvider).brightness == Brightness.dark;
 
     void handleChangeTheme() {
       ref.read(themeControllerProvider.notifier).toggleTheme();
@@ -65,9 +67,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           actions: [
             IconButton(
               onPressed: () => handleChangeTheme(),
-              icon: Icon(
-                theme == ThemeMode.light ? Icons.dark_mode : Icons.light_mode,
-              ),
+              icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
             ),
           ],
           automaticallyImplyLeading: false,
@@ -75,7 +75,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         body: RefreshIndicator(
           onRefresh: _refreshData,
           child: SingleChildScrollView(
-            padding: EdgeInsets.only(bottom: 120),
+            padding: const EdgeInsets.only(bottom: 120),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,8 +91,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       softWrap: true,
                     ),
                     IconButton(
-                        onPressed: () {},
-                        icon: Icon(
+                        onPressed: () {
+                          showSearch(
+                            context: context,
+                            delegate: CustomSearchDelegate(
+                              movieNowPlayingAsyncValue.when(
+                                data: (nowPlayingMovies) {
+                                  return moviePopularAsyncValue.when(
+                                    data: (popularMovies) {
+                                      final combinedMovies = [
+                                        ...nowPlayingMovies,
+                                        ...popularMovies,
+                                      ].map((e) => e).toList();
+                                      return combinedMovies;
+                                    },
+                                    loading: () => [],
+                                    error: (err, stack) => [],
+                                  );
+                                },
+                                loading: () => [],
+                                error: (err, stack) => [],
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
                           Icons.search,
                           weight: 500,
                         )),
@@ -103,43 +126,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   height: size.height * 0.425,
                   width: double.infinity,
                   child: movieNowPlayingAsyncValue.when(
-                    data: (movie) => ListView.separated(
-                      separatorBuilder: (context, index) => SizedBox(width: 10),
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          constraints: BoxConstraints(
-                            maxWidth: size.width * 0.4,
-                          ),
-                          child: InsightMovieCard(
-                            movie: movie[index],
-                          ),
-                        );
-                      },
-                      itemCount: movie.length,
-                    ),
-                    loading: () => ListView.separated(
-                      separatorBuilder: (context, index) => SizedBox(width: 10),
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) {
-                        return SizedBox(
-                          height: 340,
-                          child: Shimmer.fromColors(
-                            baseColor: ColorResources.neutral300,
-                            highlightColor: ColorResources.neutral200,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: ColorResources.neutral200,
-                                borderRadius: BorderRadius.circular(10),
+                    data: (movie) {
+                      print("Data state: ${movie.length} movies loaded");
+                      return ListView.separated(
+                        separatorBuilder: (context, index) =>
+                            SizedBox(width: 10),
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            constraints: BoxConstraints(
+                              maxWidth: size.width * 0.4,
+                            ),
+                            child: InsightMovieCard(
+                              movie: movie[index],
+                            ),
+                          );
+                        },
+                        itemCount: movie.length,
+                      );
+                    },
+                    loading: () {
+                      print("Loading state: showing shimmer");
+                      return ListView.separated(
+                        separatorBuilder: (context, index) =>
+                            SizedBox(width: 10),
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          return SizedBox(
+                            height: 100,
+                            width: size.width * 0.4,
+                            child: Shimmer.fromColors(
+                              baseColor: ColorResources.neutral200,
+                              highlightColor: ColorResources.neutral100,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: ColorResources.neutral200,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                      itemCount: 5,
-                    ),
+                          );
+                        },
+                        itemCount: 5,
+                      );
+                    },
                     error: (err, stack) {
-                      print(err);
+                      print("Error state: $err");
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -270,17 +302,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) {
                         return ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(20),
                           child: SizedBox(
-                            width: 40,
-                            height: 40,
+                            width: 80,
+                            height: 80,
                             child: Shimmer.fromColors(
                               baseColor: ColorResources.neutral200,
                               highlightColor: ColorResources.neutral100,
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: ColorResources.neutral200,
-                                  borderRadius: BorderRadius.circular(10),
+                                  shape: BoxShape.circle,
                                 ),
                               ),
                             ),

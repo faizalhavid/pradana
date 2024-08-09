@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/colors.dart';
+import 'package:pradana/providers/theme.dart';
 import 'package:pradana/views/dashboard/favorite.dart';
 import 'package:pradana/views/dashboard/home.dart';
 import 'package:pradana/views/dashboard/profile.dart';
@@ -58,7 +59,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final bool isDarkMode =
+        ref.watch(themeControllerProvider).brightness == Brightness.dark;
 
     return WillPopScope(
       onWillPop: _onWillPop,
@@ -71,13 +73,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             right: 20,
             top: 10,
           ),
-          child: Column(
-            children: [
-              Expanded(
-                child: _widgetOptions.elementAt(_selectedIndex),
-              ),
-            ],
-          ),
+          child: _widgetOptions.elementAt(_selectedIndex),
         ),
         bottomNavigationBar: Padding(
           padding: EdgeInsets.only(bottom: 20, left: 20, right: 20),
@@ -99,9 +95,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     isDarkMode,
                   ),
                   label: 'Home',
-                  backgroundColor: isDarkMode == Brightness.light
-                      ? ColorResources.neutral0
-                      : ColorResources.neutral700,
+                  backgroundColor: isDarkMode
+                      ? ColorResources.neutral700
+                      : ColorResources.neutral50,
                 ),
                 BottomNavigationBarItem(
                   icon: _buildIcon(
@@ -110,6 +106,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     isDarkMode,
                   ),
                   label: 'Watchlist',
+                  backgroundColor: isDarkMode
+                      ? ColorResources.neutral700
+                      : ColorResources.neutral50,
                 ),
                 BottomNavigationBarItem(
                   icon: _buildIcon(
@@ -118,6 +117,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     isDarkMode,
                   ),
                   label: 'Favorite',
+                  backgroundColor: isDarkMode
+                      ? ColorResources.neutral700
+                      : ColorResources.neutral50,
                 ),
                 BottomNavigationBarItem(
                   icon: _buildIcon(
@@ -126,6 +128,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     isDarkMode,
                   ),
                   label: 'Profile',
+                  backgroundColor: isDarkMode
+                      ? ColorResources.neutral700
+                      : ColorResources.neutral50,
                 ),
               ],
             ),
@@ -146,9 +151,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             height: 60,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isDark == Brightness.light
-                  ? ColorResources.neutral0
-                  : ColorResources.neutral400,
+              color:
+                  isDark ? ColorResources.neutral400 : ColorResources.neutral0,
             ),
           ),
         Icon(

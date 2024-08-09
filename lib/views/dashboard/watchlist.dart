@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/providers/controllers/movie.dart';
+import 'package:pradana/providers/theme.dart';
 import 'package:pradana/widgets/Card/BannerMovieCard.dart';
 
 class WatchlistScreen extends ConsumerWidget {
@@ -10,9 +11,27 @@ class WatchlistScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final watchListMovie = ref.watch(watchlistMovieProvider);
     final size = MediaQuery.of(context).size;
+
+    final bool isDarkMode =
+        ref.watch(themeControllerProvider).brightness == Brightness.dark;
+
+    void handleChangeTheme() {
+      ref.read(themeControllerProvider.notifier).toggleTheme();
+    }
+
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
+        titleSpacing: 0,
         title: Text('Watchlist Movies 🌟'),
+        actions: [
+          IconButton(
+            onPressed: () => handleChangeTheme(),
+            icon: Icon(
+              isDarkMode ? Icons.dark_mode : Icons.light_mode,
+            ),
+          ),
+        ],
       ),
       body: Container(
         height: size.height,
