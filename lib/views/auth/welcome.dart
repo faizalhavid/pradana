@@ -1,16 +1,41 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/colors.dart';
 import 'package:pradana/providers/controllers/auth.dart';
 import 'package:pradana/providers/services/auth_api.dart';
+import 'package:pradana/providers/theme.dart';
+
+/// Kelas `Welcomescreen` untuk merepresentasikan layar selamat datang aplikasi.
+///
+/// Kelas ini menggunakan `ConsumerWidget` untuk memungkinkan konsumsi state dari provider.
+///
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `size` (Size): Ukuran layar perangkat.
+/// - `loading` (bool): Menunjukkan apakah sedang dalam proses loading.
+/// - `isDarkMode` (bool): Menunjukkan apakah mode gelap sedang aktif.
+/// - `gradientColors` (List<Color>): Daftar warna untuk gradient background.
+///
+/// Kelas ini juga menyediakan metode `handleTMDBAuthentification` dan `handleTMDBGuest`
+/// untuk menangani autentikasi dengan TMDB.
 
 class Welcomescreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
     final bool loading = ref.watch(loadingProvider);
+    final bool isDarkMode =
+        ref.watch(themeControllerProvider).brightness == Brightness.dark;
+    final List<Color> gradientColors = isDarkMode
+        ? [
+            ColorResources.neutral900,
+            const Color.fromARGB(181, 33, 33, 33),
+            Color.fromARGB(0, 0, 0, 0)
+          ]
+        : [
+            Colors.white,
+            Color.fromARGB(202, 255, 255, 255),
+            Color.fromARGB(0, 255, 255, 255)
+          ];
     return Scaffold(
       body: Stack(
         alignment: Alignment.center,
@@ -28,16 +53,12 @@ class Welcomescreen extends ConsumerWidget {
                 ),
                 Container(
                   height: size.height * 0.5,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        Colors.white,
-                        Color.fromARGB(202, 255, 255, 255),
-                        Color.fromARGB(0, 255, 255, 255)
-                      ],
+                      colors: gradientColors,
                       end: Alignment.topCenter,
                       begin: Alignment.bottomCenter,
-                      stops: [0.0, 0.8, 1.0],
+                      stops: const [0.0, 0.8, 1.0],
                     ),
                   ),
                 ),
@@ -63,7 +84,9 @@ class Welcomescreen extends ConsumerWidget {
                   children: [
                     Text(
                       'AS Guest',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: ColorResources.primaryColor,
+                          ),
                     ),
                     loading
                         ? const SizedBox(
