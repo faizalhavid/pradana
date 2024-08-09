@@ -111,15 +111,31 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
       child: Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            actions: [
+              IconButton(
+                  icon: const Icon(Icons.download, color: Colors.white),
+                  onPressed: () async {
+                    final filePathAsyncValue = ref.read(
+                        downloadMoviePosterProvider(widget.movie.poster_path));
+                    filePathAsyncValue.when(
+                      loading: () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Downloading...'))),
+                      error: (err, stack) => ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text('Error: $err'))),
+                      data: (filePath) => ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(
+                              content: Text('Downloaded to $filePath'))),
+                    );
+                  })
+            ]),
         body: movieAsyncValue.when(
           loading: () => Center(child: CircularProgressIndicator()),
           error: (err, stack) => Center(child: Text('Error: $err')),

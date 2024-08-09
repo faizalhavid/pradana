@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:pradana/models/data/Genre.dart';
 import 'dart:convert';
 
@@ -358,4 +362,60 @@ Future<void> addMovieToFavorites(AddMovieToFavoritesRef ref, int id) async {
   if (response.statusCode != 201) {
     throw Exception('Failed to add movie to favorites');
   }
+}
+
+/// Fungsi `downloadMoviePoster` untuk mengunduh poster film.
+///
+/// Fungsi ini menggunakan anotasi `@riverpod` untuk menandai bahwa ini adalah
+/// provider yang mengembalikan `Future` dengan nilai `String`.
+///
+/// [ref] adalah referensi ke provider yang digunakan untuk membaca state.
+///
+/// [posterPath] adalah path poster film yang akan diunduh.
+///
+/// Fungsi ini akan mengunduh poster film dari URL yang diberikan dan menyimpannya
+/// ke direktori yang dipilih oleh pengguna. Jika token akses API tidak disetel,
+/// atau jika terjadi kesalahan saat mengunduh poster, fungsi ini akan melempar
+/// pengecualian.
+
+@riverpod
+Future<String> downloadMoviePoster(
+    DownloadMoviePosterRef ref, String? posterPath) async {
+  final access_token = dotenv.env['API_ACCESS_TOKEN'];
+  if (access_token == null) {
+    throw Exception('API access token is not set');
+  }
+
+  final url = 'https://image.tmdb.org/t/p/original/$posterPath';
+  print('Downloading poster from URL: $url');
+
+  final response = await http.get(
+    Uri.parse(url),
+    headers: {
+      'Authorization': 'Bearer $access_token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode != 200) {
+    print('Failed to download poster. Status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    throw Exception('Failed to download poster');
+  }
+
+  // Pilih direktori penyimpanan
+  String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+  if (selectedDirectory == null) {
+    throw Exception('Tidak ada direktori yang dipilih');
+  }
+
+  final filePath =
+      '$selectedDirectory/poster_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+  // Simpan poster ke file
+  final file = File(filePath);
+  await file.writeAsBytes(response.bodyBytes);
+
+  //  Simpan poster ke file
+  return filePath;
 }

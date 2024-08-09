@@ -92,6 +92,15 @@ class ThemeModel {
           onError: ColorResources.primaryColor,
           brightness: Brightness.light,
         ),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: ColorResources.primaryColor,
+          contentTextStyle: TextStyle(
+            fontFamily: 'SFProDisplay',
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: ColorResources.neutral0,
+          ),
+        ),
         textTheme: TextTheme(
           headlineLarge: GoogleFonts.roboto(
             fontSize: 32,
@@ -171,6 +180,15 @@ class ThemeModel {
           onSurface: ColorResources.neutral0,
           onError: ColorResources.primaryColor,
           brightness: Brightness.dark,
+        ),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: ColorResources.secondaryColor,
+          contentTextStyle: TextStyle(
+            fontFamily: 'SFProDisplay',
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: ColorResources.neutral0,
+          ),
         ),
         textTheme: TextTheme(
           headlineLarge: GoogleFonts.roboto(

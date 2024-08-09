@@ -14,7 +14,7 @@ import 'package:pradana/providers/theme.dart';
 /// - `loading` (bool): Menunjukkan apakah sedang dalam proses loading.
 /// - `isDarkMode` (bool): Menunjukkan apakah mode gelap sedang aktif.
 /// - `gradientColors` (List<Color>): Daftar warna untuk gradient background.
-///
+/// - `isDark` (bool): Menunjukkan apakah mode gelap sedang aktif.
 /// Kelas ini juga menyediakan metode `handleTMDBAuthentification` dan `handleTMDBGuest`
 /// untuk menangani autentikasi dengan TMDB.
 
@@ -36,6 +36,8 @@ class Welcomescreen extends ConsumerWidget {
             Color.fromARGB(202, 255, 255, 255),
             Color.fromARGB(0, 255, 255, 255)
           ];
+    final isDark =
+        ref.watch(themeControllerProvider).brightness == Brightness.dark;
     return Scaffold(
       body: Stack(
         alignment: Alignment.center,
@@ -116,8 +118,9 @@ class Welcomescreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Image(
-                  image: AssetImage('assets/images/logo.png'),
+                Image(
+                  image: AssetImage(
+                      'assets/images/${isDark ? 'logo_dark' : 'logo'}.png'),
                 ),
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 10),
