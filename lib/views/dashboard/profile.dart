@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/colors.dart';
+import 'package:pradana/models/data/Movie.dart';
 import 'package:pradana/models/data/User.dart';
 import 'package:pradana/providers/controllers/auth.dart';
 import 'package:pradana/providers/controllers/movie.dart';
@@ -38,6 +39,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   void initState() {
     super.initState();
+    loadMoviesBasedOnAuth(ref);
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -47,11 +49,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     super.dispose();
   }
 
+  void loadMoviesBasedOnAuth(WidgetRef ref) async {
+    final sessionId = ref.read(sessionIdProvider);
+
+    if (sessionId != null) {
+      final movies = await ref.read(getFavoriteMoviesProvider.future);
+      ref.read(favoriteMovieProvider.notifier).state = movies;
+    } else {
+      ref.read(favoriteMovieProvider.notifier).clear();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final watchListMovie = ref.watch(watchlistMovieProvider);
+    final watchListMovie = ref.watch<List<Movie>>(watchlistMovieProvider);
     final favoriteMovie = ref.watch(favoriteMovieProvider);
+    final size = MediaQuery.of(context).size;
     final AsyncValue<User> userAccountDetail =
         ref.watch(getAccountDetailsProvider);
     final bool isDarkMode =

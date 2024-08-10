@@ -19,6 +19,7 @@ part 'user_api.g.dart';
 Future<User> getAccountDetails(GetAccountDetailsRef ref) async {
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
   final sessionId = ref.read(sessionIdProvider.notifier).state;
+  print('sessionId: $sessionId');
 
   final response = await http.get(
     Uri.parse('https://api.themoviedb.org/3/account?session_id=$sessionId'),
@@ -61,7 +62,7 @@ Future<List<Movie>> getWatchlistMovies(GetWatchlistMoviesRef ref) async {
 }
 
 @riverpod
-Future<List<Movie>> GetFavoriteMovies(GetFavoriteMoviesRef ref) async {
+Future<List<Movie>> getFavoriteMovies(GetFavoriteMoviesRef ref) async {
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
   final sessionId = ref.read(sessionIdProvider.notifier).state;
 
