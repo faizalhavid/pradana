@@ -35,7 +35,8 @@ final guestSessionProvider = StateProvider<String>((ref) {
 /// Provider untuk menyimpan status loading.
 ///
 /// Provider ini menggunakan `StateProvider` untuk menyimpan status loading sebagai boolean.
-final loadingProvider = StateProvider<bool>((ref) => false);
+final loadingGuestSessionProvider = StateProvider<bool>((ref) => false);
+final loadingAuthSessionProvider = StateProvider<bool>((ref) => false);
 
 /// Provider untuk menentukan rute awal aplikasi.
 ///
@@ -50,9 +51,14 @@ final initialRouteProvider = FutureProvider<String>((ref) async {
       prefs.getString('guest_session_id') ?? prefs.getString('session_id');
 
   if (requestToken != null) {
-    ref.read(requesttokenProvider.notifier).state =
-        RequestToken.fromJson(jsonDecode(requestToken));
-    return '/dashboard';
+    try {
+      // Assuming requestToken is a plain string, not a JSON string
+      ref.read(requesttokenProvider.notifier).state = RequestToken(
+          success: true, expires_at: '', request_token: requestToken);
+      return '/dashboard';
+    } catch (e) {
+      print('Error decoding requestToken: $e');
+    }
   }
   if (sessionId != null) {
     ref.read(sessionIdProvider.notifier).state = sessionId;

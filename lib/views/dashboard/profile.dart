@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/colors.dart';
+import 'package:pradana/models/data/User.dart';
+import 'package:pradana/providers/controllers/auth.dart';
 import 'package:pradana/providers/controllers/movie.dart';
+import 'package:pradana/providers/services/auth_api.dart';
+import 'package:pradana/providers/services/user_api.dart';
 import 'package:pradana/providers/theme.dart';
 import 'package:pradana/widgets/Card/InsightMovieCard.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Kelas `ProfileScreen` untuk menampilkan profil pengguna dan daftar film.
 ///
@@ -47,9 +52,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final size = MediaQuery.of(context).size;
     final watchListMovie = ref.watch(watchlistMovieProvider);
     final favoriteMovie = ref.watch(favoriteMovieProvider);
+    final AsyncValue<User> userAccountDetail =
+        ref.watch(getAccountDetailsProvider);
     final bool isDarkMode =
         ref.watch(themeControllerProvider).brightness == Brightness.dark;
+    // final AsyncValue<List<Movie>> watchListMovie =
+    //     ref.watch(getWatchlistMoviesProvider);
+
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              final SharedPreferences prefs =
+                  await SharedPreferences.getInstance();
+              prefs.remove('session_id');
+              prefs.remove('guest_session_id');
+              prefs.remove('request_token');
+              ref.read(sessionIdProvider.notifier).state = '';
+              ref.read(guestSessionProvider.notifier).state = '';
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/auth/welcome',
+                (route) => false,
+              );
+            },
+          ),
+        ],
+      ),
       body: Container(
         padding: const EdgeInsets.only(top: 60),
         height: size.height,
@@ -58,19 +90,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage('assets/images/user_profile.jpg'),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Pradana',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+            userAccountDetail.when(
+              data: (user) => Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: user.avatar?.gravatar?.hash != null
+                        ? FadeInImage.assetNetwork(
+                            placeholder: 'assets/placeholder.png',
+                            image:
+                                'https://www.gravatar.com/avatar/${user.avatar!.gravatar!.hash ?? user.avatar!.tmdb?.avatarPath}?s=200',
+                            fit: BoxFit.cover,
+                          ).image
+                        : AssetImage('assets/images/user_profile.jpg'),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    user.name!.isEmpty
+                        ? user.username!.isEmpty
+                            ? 'Guest'
+                            : '@${user.username}'
+                        : user.name!,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
+              loading: () => const CircularProgressIndicator(),
+              error: (error, stackTrace) => Text('Error: $error'),
             ),
-            const Text('@pradana'),
             const SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
@@ -115,6 +165,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ],
             ),
+            SizedBox(height: 10),
             Flexible(
               child: TabBarView(
                 controller: _tabController,

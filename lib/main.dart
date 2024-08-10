@@ -1,9 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/data/Movie.dart';
+import 'package:pradana/models/data/RequestToken.dart';
 import 'package:pradana/providers/controllers/auth.dart';
+import 'package:pradana/providers/services/auth_api.dart';
 import 'package:pradana/providers/theme.dart';
-import 'package:pradana/views/auth/login.dart';
 import 'package:pradana/views/auth/welcome.dart';
 import 'package:pradana/views/dashboard/dashboard.dart';
 import 'package:pradana/views/dashboard/detail_movie.dart';
@@ -43,24 +48,93 @@ void main() async {
 /// Kelas ini menggunakan `ConsumerWidget` dari paket Riverpod untuk mengelola
 /// state dan tema aplikasi. Widget ini membangun aplikasi dengan menggunakan
 /// `MaterialApp` dan mendefinisikan rute-rute yang tersedia dalam aplikasi.
-class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+/// Kelas ini memiliki beberapa properti dan metode:
+/// - `build` (Widget): Metode untuk membangun tampilan aplikasi.
+/// - `_navigatorKey` (GlobalKey<NavigatorState>): Kunci navigator untuk mengelola navigasi.
+/// - `_appLinks` (AppLinks): Instance dari kelas `AppLinks` untuk menangani deep links.
+/// - `initialRouteAsync` (AsyncValue<String>): Nilai async untuk menentukan rute awal.
+/// - `openAppLink` (void): Metode untuk membuka deep link.
+/// - `initDeepLinks` (Future<void>): Metode untuk inisialisasi deep links.
+/// - `initState` (void): Metode untuk inisialisasi state.
+///
+class MyApp extends ConsumerStatefulWidget {
+  MyApp({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Mengambil tema aplikasi dari provider.
+  _MyAppState createState() => _MyAppState();
+}
+
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
+class _MyAppState extends ConsumerState<MyApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  late AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    initDeepLinks();
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
+  }
+
+  void handleDeepLink(Uri uri) async {
+    debugPrint('onAppLink: $uri');
+
+    if (uri.host == 'open.pradana') {
+      final requestToken = uri.queryParameters['request_token'];
+      final approved = uri.queryParameters['approved'];
+
+      if (requestToken != null && approved == 'true') {
+        try {
+          final sessionId = await ref.read(createSessionIdProvider.future);
+          ref.read(sessionIdProvider.notifier).state = sessionId;
+
+          _navigatorKey.currentState?.pushReplacementNamed('/dashboard');
+          ScaffoldMessenger.of(_navigatorKey.currentContext!).showSnackBar(
+            SnackBar(content: Text('You are now logged in')),
+          );
+        } catch (e) {
+          scaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+                content: Text('Something went wrong, you can use as Guest')),
+          );
+        } finally {
+          ref.read(loadingAuthSessionProvider.notifier).state = false;
+        }
+      } else {
+        scaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(content: Text('Invalid request token or approval status')),
+        );
+      }
+    }
+  }
+
+  void initDeepLinks() {
+    _appLinks = AppLinks();
+    _linkSubscription = _appLinks.uriLinkStream.listen(handleDeepLink);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = ref.watch(themeControllerProvider);
-    // Mengambil rute awal dari provider.
     final initialRouteAsync = ref.watch(initialRouteProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: theme,
+      navigatorKey: _navigatorKey,
+      scaffoldMessengerKey: scaffoldMessengerKey,
       onGenerateRoute: (settings) {
         // Mendefinisikan rute-rute yang tersedia dalam aplikasi.
         final routes = {
           '/auth/welcome': (context) => Welcomescreen(),
-          '/auth/login': (context) => LoginScreen(),
           '/dashboard': (context) => DashboardScreen(),
           '/dashboard/home': (context) => HomeScreen(),
           '/dashboard/watchlist': (context) => WatchlistScreen(),
@@ -80,25 +154,22 @@ class MyApp extends ConsumerWidget {
       },
       // Menentukan widget awal berdasarkan hasil dari `initialRouteAsync`.
       home: initialRouteAsync.when(
-        data: (route) {
-          switch (route) {
-            case '/auth/welcome':
-              return Welcomescreen();
-            case '/auth/login':
-              return LoginScreen();
-            case '/dashboard':
-              return DashboardScreen();
-            case '/dashboard/home':
-              return HomeScreen();
-            default:
-              return Welcomescreen();
-          }
-        },
-        loading: () =>
-            Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (error, stack) =>
-            Scaffold(body: Center(child: Text('Error: $error'))),
-      ),
+          data: (route) {
+            switch (route) {
+              case '/auth/welcome':
+                return Welcomescreen();
+              case '/dashboard':
+                return DashboardScreen();
+              default:
+                return Welcomescreen();
+            }
+          },
+          loading: () =>
+              Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (error, stack) {
+            print('Error: $error');
+            return Scaffold(body: Center(child: Text('Something went wrong')));
+          }),
     );
   }
 }

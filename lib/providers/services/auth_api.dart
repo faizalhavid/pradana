@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/data/RequestToken.dart';
+import 'package:pradana/models/data/User.dart';
 import 'package:pradana/providers/controllers/auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,10 +38,16 @@ Future<RequestToken> createRequestToken(CreateRequestTokenRef ref) async {
       'Content-Type': 'application/json',
     },
   );
-
+  print('response1: ${response.body}');
   if (response.statusCode == 200) {
-    prefs.setString('request_token', jsonDecode(response.body));
-    return RequestToken.fromJson(jsonDecode(response.body));
+    final responseBody = jsonDecode(response.body);
+    final requestTokenString = responseBody['request_token'];
+    if (requestTokenString is String) {
+      prefs.setString('request_token', requestTokenString);
+      return RequestToken.fromJson(responseBody);
+    } else {
+      throw Exception('Invalid request token format');
+    }
   } else {
     throw Exception('Failed to create request token');
   }
@@ -64,21 +71,24 @@ Future<RequestToken> createRequestToken(CreateRequestTokenRef ref) async {
 @riverpod
 Future<String> createSessionId(CreateSessionIdRef ref) async {
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
-
   final request_token =
       ref.read(requesttokenProvider.notifier).state?.request_token;
-  final response = await http.get(
-    Uri.parse('https://www.themoviedb.org/authenticate/$request_token'),
+
+  final response = await http.post(
+    Uri.parse('https://api.themoviedb.org/3/authentication/session/new'),
     headers: {
       'Authorization': 'Bearer $access_token',
       'Content-Type': 'application/json',
     },
+    body: jsonEncode({'request_token': request_token}),
   );
+
+  print('response2: ${response.body}');
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body)['session_id'];
   } else {
-    throw Exception('Failed to create session id');
+    throw Exception('Failed to create session id: ${response.body}');
   }
 }
 
@@ -101,6 +111,7 @@ Future<String> createSessionId(CreateSessionIdRef ref) async {
 Future<String?> createSession(CreateSessionRef ref) async {
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
   final sessionId = ref.read(sessionIdProvider.notifier).state;
+
   final response = await http.post(
     Uri.parse('https://api.themoviedb.org/3/authentication/session/new'),
     headers: {
@@ -111,6 +122,7 @@ Future<String?> createSession(CreateSessionRef ref) async {
       'session_id': sessionId,
     }),
   );
+  print('response3: ${response.body}');
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body)['session_id'];
@@ -136,7 +148,7 @@ Future<String?> createSession(CreateSessionRef ref) async {
 ///
 /// Mengembalikan `Future<String>` yang berisi ID sesi tamu baru.
 @riverpod
-Future<String> createGuestSession(Ref ref) async {
+Future<String> createGuestSession(CreateGuestSessionRef ref) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
   final response = await http.get(

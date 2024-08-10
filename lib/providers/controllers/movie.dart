@@ -46,22 +46,8 @@ class MovieNotifier extends StateNotifier<List<Movie>> {
     }
   }
 
-  /// Memeriksa apakah film adalah favorit.
-  ///
-  /// Mengembalikan `true` jika film ada dalam daftar, `false` jika tidak.
-  ///
-  /// [movie] adalah objek film yang akan diperiksa.
-  bool isFavorite(Movie movie) {
-    return state.contains(movie);
-  }
-
-  /// Memeriksa apakah film ada dalam daftar tontonan.
-  ///
-  /// Mengembalikan `true` jika film ada dalam daftar, `false` jika tidak.
-  ///
-  /// [movie] adalah objek film yang akan diperiksa.
-  bool isWatchlist(Movie movie) {
-    return state.contains(movie);
+  void synchronizationFavoriteMovie(List<Movie> movies) {
+    final serverData = ref.read(favoriteMovieProvider.notifier).state;
   }
 
   /// Menghapus semua film dari daftar.

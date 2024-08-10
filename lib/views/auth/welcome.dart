@@ -4,6 +4,7 @@ import 'package:pradana/models/colors.dart';
 import 'package:pradana/providers/controllers/auth.dart';
 import 'package:pradana/providers/services/auth_api.dart';
 import 'package:pradana/providers/theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Kelas `Welcomescreen` untuk merepresentasikan layar selamat datang aplikasi.
 ///
@@ -22,7 +23,9 @@ class Welcomescreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
-    final bool loading = ref.watch(loadingProvider);
+    final bool loadingAuth = ref.watch(loadingAuthSessionProvider);
+    final bool loadingGuest = ref.watch(loadingGuestSessionProvider);
+
     final bool isDarkMode =
         ref.watch(themeControllerProvider).brightness == Brightness.dark;
     final List<Color> gradientColors = isDarkMode
@@ -69,6 +72,24 @@ class Welcomescreen extends ConsumerWidget {
           ),
           Positioned(
             top: 50,
+            left: -10,
+            child: SizedBox(
+              width: 130,
+              child: IconButton(
+                onPressed: () {
+                  ref.read(themeControllerProvider.notifier).toggleTheme();
+                },
+                icon: Icon(
+                  isDark ? Icons.light_mode : Icons.dark_mode,
+                  color: isDark
+                      ? ColorResources.neutral0
+                      : ColorResources.neutral900,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 50,
             right: 20,
             child: SizedBox(
               width: 130,
@@ -90,7 +111,7 @@ class Welcomescreen extends ConsumerWidget {
                             color: ColorResources.primaryColor,
                           ),
                     ),
-                    loading
+                    loadingGuest
                         ? const SizedBox(
                             height: 20,
                             width: 20,
@@ -119,6 +140,7 @@ class Welcomescreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Image(
+                  width: 200,
                   image: AssetImage(
                       'assets/images/${isDark ? 'logo_dark' : 'logo'}.png'),
                 ),
@@ -138,38 +160,57 @@ class Welcomescreen extends ConsumerWidget {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/auth/login');
+                      handleTMDBAuthentification(ref: ref, context: context);
                     },
-                    child: Text(
-                      'Sign in',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: ColorResources.neutral0,
-                          ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Sign in',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: ColorResources.neutral0,
+                                  ),
+                        ),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        loadingAuth
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  color: ColorResources.neutral0,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ],
                     ),
                   ),
                 ),
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  width: size.width,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shadowColor: Colors.transparent,
-                      backgroundColor: ColorResources.neutral100,
-                      foregroundColor: ColorResources.secondaryColor,
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/register');
-                    },
-                    child: Text(
-                      'Sign up',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: ColorResources.secondaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ),
-                ),
+                // Container(
+                //   margin: const EdgeInsets.symmetric(vertical: 10),
+                //   width: size.width,
+                //   height: 50,
+                //   child: ElevatedButton(
+                //     style: ElevatedButton.styleFrom(
+                //       shadowColor: Colors.transparent,
+                //       backgroundColor: ColorResources.neutral100,
+                //       foregroundColor: ColorResources.secondaryColor,
+                //     ),
+                //     onPressed: () {
+                //       Navigator.pushNamed(context, '/register');
+                //     },
+                //     child: Text(
+                //       'Sign up',
+                //       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                //             color: ColorResources.secondaryColor,
+                //             fontWeight: FontWeight.bold,
+                //           ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -183,45 +224,23 @@ class Welcomescreen extends ConsumerWidget {
     required BuildContext context,
   }) async {
     try {
-      ref.read(loadingProvider.notifier).state = true;
+      ref.read(loadingAuthSessionProvider.notifier).state = true;
 
       final requestToken = await ref.read(createRequestTokenProvider.future);
-      if (requestToken != null) {
+      if (requestToken != null && requestToken.request_token != null) {
         ref.read(requesttokenProvider.notifier).state = requestToken;
-        final sessionId = await ref.read(createSessionIdProvider.future);
 
-        if (sessionId != null) {
-          ref.read(sessionIdProvider.notifier).state = sessionId;
-          final session = await ref.read(createSessionProvider.future);
-
-          if (session != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content:
-                      Text('Session created until ${requestToken.expires_at}')),
-            );
-            Navigator.pushReplacementNamed(context, '/dashboard');
-            ref.read(loadingProvider.notifier).state = false;
-          } else {
-            ref.read(loadingProvider.notifier).state = false;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to create session')),
-            );
-          }
+        final Uri authUrl = Uri.parse(
+            'https://www.themoviedb.org/authenticate/${requestToken.request_token}?redirect_to=redirect://open.pradana');
+        if (await canLaunchUrl(authUrl)) {
+          await launchUrl(authUrl, mode: LaunchMode.externalApplication);
         } else {
-          ref.read(loadingProvider.notifier).state = false;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to create session ID')),
-          );
+          throw Exception('Could not launch $authUrl');
         }
       } else {
-        ref.read(loadingProvider.notifier).state = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create request token')),
-        );
+        throw Exception('Failed to create request token, you can use as Guest');
       }
     } catch (e) {
-      ref.read(loadingProvider.notifier).state = false;
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -242,15 +261,15 @@ class Welcomescreen extends ConsumerWidget {
           SnackBar(content: Text('Guest session created')),
         );
         Navigator.pushReplacementNamed(context, '/dashboard');
-        ref.read(loadingProvider.notifier).state = false;
+        ref.read(loadingGuestSessionProvider.notifier).state = false;
       } else {
-        ref.read(loadingProvider.notifier).state = false;
+        ref.read(loadingGuestSessionProvider.notifier).state = false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to create guest session')),
         );
       }
     } catch (e) {
-      ref.read(loadingProvider.notifier).state = false;
+      ref.read(loadingGuestSessionProvider.notifier).state = false;
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
