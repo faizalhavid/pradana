@@ -9,6 +9,7 @@ import 'package:pradana/providers/services/user_api.dart';
 import 'package:pradana/providers/theme.dart';
 import 'package:pradana/widgets/Card/InsightMovieCard.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 
 /// Kelas `ProfileScreen` untuk menampilkan profil pengguna dan daftar film.
 ///
@@ -47,6 +48,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     super.dispose();
   }
 
+  void handleLogout(BuildContext context) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('session_id');
+    prefs.remove('guest_session_id');
+    prefs.remove('request_token');
+    ref.read(sessionIdProvider.notifier).state = '';
+    ref.read(guestSessionProvider.notifier).state = '';
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/auth/welcome',
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -65,19 +80,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final SharedPreferences prefs =
-                  await SharedPreferences.getInstance();
-              prefs.remove('session_id');
-              prefs.remove('guest_session_id');
-              prefs.remove('request_token');
-              ref.read(sessionIdProvider.notifier).state = '';
-              ref.read(guestSessionProvider.notifier).state = '';
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/auth/welcome',
-                (route) => false,
-              );
+            onPressed: () {
+              handleLogout(context);
             },
           ),
         ],
@@ -90,37 +94,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            userAccountDetail.when(
-              data: (user) => Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: user.avatar?.gravatar?.hash != null
-                        ? FadeInImage.assetNetwork(
-                            placeholder: 'assets/placeholder.png',
-                            image:
-                                'https://www.gravatar.com/avatar/${user.avatar!.gravatar!.hash ?? user.avatar!.tmdb?.avatarPath}?s=200',
-                            fit: BoxFit.cover,
-                          ).image
-                        : AssetImage('assets/images/user_profile.jpg'),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    user.name!.isEmpty
-                        ? user.username!.isEmpty
-                            ? 'Guest'
-                            : '@${user.username}'
-                        : user.name!,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+            ref.watch(sessionIdProvider.notifier).state.isEmpty
+                ? renderDefautProfile()
+                : userAccountDetail.when(
+                    data: (user) => Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundImage: user.avatar?.gravatar?.hash != null
+                              ? FadeInImage.assetNetwork(
+                                  placeholder: 'assets/placeholder.png',
+                                  image:
+                                      'https://www.gravatar.com/avatar/${user.avatar!.gravatar!.hash ?? user.avatar!.tmdb?.avatarPath}?s=200',
+                                  fit: BoxFit.cover,
+                                ).image
+                              : AssetImage('assets/images/user_profile.jpg'),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '@${user.username}' ?? user.name!,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
+                    loading: () => const Column(
+                      children: [
+                        Shimmer(
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.grey,
+                          ),
+                          gradient: LinearGradient(
+                            colors: [
+                              ColorResources.neutral100,
+                              ColorResources.neutral200
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text('Loading...'),
+                      ],
+                    ),
+                    error: (error, stackTrace) => renderDefautProfile(),
                   ),
-                ],
-              ),
-              loading: () => const CircularProgressIndicator(),
-              error: (error, stackTrace) => Text('Error: $error'),
-            ),
             const SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
@@ -214,6 +233,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Column renderDefautProfile() {
+    return const Column(
+      children: [
+        CircleAvatar(
+          radius: 50,
+          backgroundImage: AssetImage('assets/images/user_profile.jpg'),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          '@User',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }

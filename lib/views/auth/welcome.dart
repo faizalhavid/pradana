@@ -253,10 +253,11 @@ class Welcomescreen extends ConsumerWidget {
     required BuildContext context,
   }) async {
     try {
+      ref.read(loadingGuestSessionProvider.notifier).state = true;
       final guestSession = await ref.read(createGuestSessionProvider.future);
-
       if (guestSession != null) {
         ref.read(guestSessionProvider.notifier).state = guestSession;
+        ref.read(loadingGuestSessionProvider.notifier).state = false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Guest session created')),
         );

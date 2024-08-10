@@ -48,6 +48,8 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: [SystemUiOverlay.bottom]);
     _draggableScrollableSheetController.addListener(() {
       final currentSize = _draggableScrollableSheetController.size;
 

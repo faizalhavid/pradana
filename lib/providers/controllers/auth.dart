@@ -50,16 +50,15 @@ final initialRouteProvider = FutureProvider<String>((ref) async {
   final sessionId =
       prefs.getString('guest_session_id') ?? prefs.getString('session_id');
 
-  if (requestToken != null) {
-    try {
-      // Assuming requestToken is a plain string, not a JSON string
-      ref.read(requesttokenProvider.notifier).state = RequestToken(
-          success: true, expires_at: '', request_token: requestToken);
-      return '/dashboard';
-    } catch (e) {
-      print('Error decoding requestToken: $e');
-    }
-  }
+  // if (requestToken != null) {
+  //   try {
+  //     ref.read(requesttokenProvider.notifier).state = RequestToken(
+  //         success: true, expires_at: '', request_token: requestToken);
+  //     return '/dashboard';
+  //   } catch (e) {
+  //     print('Error decoding requestToken: $e');
+  //   }
+  // }
   if (sessionId != null) {
     ref.read(sessionIdProvider.notifier).state = sessionId;
     return '/dashboard';

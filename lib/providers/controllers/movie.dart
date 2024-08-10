@@ -46,10 +46,6 @@ class MovieNotifier extends StateNotifier<List<Movie>> {
     }
   }
 
-  void synchronizationFavoriteMovie(List<Movie> movies) {
-    final serverData = ref.read(favoriteMovieProvider.notifier).state;
-  }
-
   /// Menghapus semua film dari daftar.
   ///
   /// Mengosongkan daftar film.

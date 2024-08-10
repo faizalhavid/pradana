@@ -12,9 +12,8 @@ part 'user_api.g.dart';
 /// Fungsi `getAccountDetails` mengambil detail akun dari API The Movie Database (TMDb).
 ///
 /// Fungsi ini menggunakan Riverpod untuk mengelola state dan dependensi.
-/// Fungsi ini mengembalikan sebuah `Future` yang berisi `Map<String, dynamic>`
-/// yang merepresentasikan detail akun.
-///
+/// Fungsi ini mengembalikan sebuah `Future` yang berisi `Map<String, dynamic>` yang merepresentasikan detail akun.
+
 @riverpod
 Future<User> getAccountDetails(GetAccountDetailsRef ref) async {
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
@@ -36,6 +35,11 @@ Future<User> getAccountDetails(GetAccountDetailsRef ref) async {
     throw Exception('Failed to get account details');
   }
 }
+
+/// Fungsi `getWatchlistMovies` mengambil daftar film yang ditandai sebagai watchlist.
+///
+/// Fungsi ini menggunakan Riverpod untuk mengelola state dan dependensi.
+/// Fungsi ini mengembalikan sebuah `Future` yang berisi daftar film yang ditandai sebagai watchlist.
 
 @riverpod
 Future<List<Movie>> getWatchlistMovies(GetWatchlistMoviesRef ref) async {
@@ -60,8 +64,13 @@ Future<List<Movie>> getWatchlistMovies(GetWatchlistMoviesRef ref) async {
   }
 }
 
+/// Fungsi `getFavoriteMovies` mengambil daftar film yang ditandai sebagai favorit.
+///
+/// Fungsi ini menggunakan Riverpod untuk mengelola state dan dependensi.
+/// Fungsi ini mengembalikan sebuah `Future` yang berisi daftar film yang ditandai sebagai favorit.
+
 @riverpod
-Future<List<Movie>> GetFavoriteMovies(GetFavoriteMoviesRef ref) async {
+Future<List<Movie>> getFavoriteMovies(GetFavoriteMoviesRef ref) async {
   final access_token = dotenv.env['API_ACCESS_TOKEN'];
   final sessionId = ref.read(sessionIdProvider.notifier).state;
 
@@ -82,6 +91,11 @@ Future<List<Movie>> GetFavoriteMovies(GetFavoriteMoviesRef ref) async {
     throw Exception('Failed to get favorite movies');
   }
 }
+
+/// Fungsi `markAsFavorite` menandai film sebagai favorit.
+///
+/// Fungsi ini menggunakan Riverpod untuk mengelola state dan dependensi.
+/// Fungsi ini mengembalikan sebuah `Future` yang berisi `void`.
 
 @riverpod
 Future<void> markAsFavorite(MarkAsFavoriteRef ref, int movieId) async {
@@ -106,6 +120,11 @@ Future<void> markAsFavorite(MarkAsFavoriteRef ref, int movieId) async {
     throw Exception('Failed to mark as favorite');
   }
 }
+
+/// Fungsi `addToWatchlist` menambahkan film ke watchlist.
+///
+/// Fungsi ini menggunakan Riverpod untuk mengelola state dan dependensi.
+/// Fungsi ini mengembalikan sebuah `Future` yang berisi `void`.
 
 @riverpod
 Future<void> addToWatchlist(AddToWatchlistRef ref, int movieId) async {

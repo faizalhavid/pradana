@@ -56,7 +56,10 @@ void main() async {
 /// - `openAppLink` (void): Metode untuk membuka deep link.
 /// - `initDeepLinks` (Future<void>): Metode untuk inisialisasi deep links.
 /// - `initState` (void): Metode untuk inisialisasi state.
-///
+/// - `dispose` (void): Metode untuk membersihkan state.
+/// - `handleDeepLink` (void): Metode untuk menangani deep link.
+/// - `build` (Widget): Metode untuk membangun tampilan aplikasi.
+
 class MyApp extends ConsumerStatefulWidget {
   MyApp({Key? key}) : super(key: key);
 
@@ -85,30 +88,33 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   void handleDeepLink(Uri uri) async {
-    debugPrint('onAppLink: $uri');
-
+    // Memeriksa host dari URI deep link.
     if (uri.host == 'open.pradana') {
       final requestToken = uri.queryParameters['request_token'];
       final approved = uri.queryParameters['approved'];
-
+      // Memeriksa apakah request token dan approval status valid.
       if (requestToken != null && approved == 'true') {
         try {
+          // Memanggil metode `createSessionId` dari `AuthApi` untuk membuat session ID.
           final sessionId = await ref.read(createSessionIdProvider.future);
           ref.read(sessionIdProvider.notifier).state = sessionId;
-
+          // Menavigasi ke halaman dashboard.
           _navigatorKey.currentState?.pushReplacementNamed('/dashboard');
           ScaffoldMessenger.of(_navigatorKey.currentContext!).showSnackBar(
             SnackBar(content: Text('You are now logged in')),
           );
         } catch (e) {
+          // Menampilkan pesan kesalahan jika gagal membuat session ID.
           scaffoldMessengerKey.currentState?.showSnackBar(
             SnackBar(
                 content: Text('Something went wrong, you can use as Guest')),
           );
         } finally {
+          // Menghentikan loading.
           ref.read(loadingAuthSessionProvider.notifier).state = false;
         }
       } else {
+        // Menampilkan pesan kesalahan jika request token atau approval status tidak valid.
         scaffoldMessengerKey.currentState?.showSnackBar(
           SnackBar(content: Text('Invalid request token or approval status')),
         );

@@ -1,7 +1,6 @@
 # Pradana
 
-A new Flutter project designed to display movie information, including favorite and watchlist movies. This application uses several Flutter features such as `ConsumerWidget`, `ConsumerStatefulWidget`, and `SearchDelegate` to manage state and provide a customizable search interface.
-
+A new Flutter project designed to display movie information, including favorite and watchlist movies. This application uses several Flutter features such as `Theme Provider`, `Riverpod State Management`, `DeepLink`, `TMDB Credentials`
 ## Features
 
 - **Home**: Displays the latest movies.
