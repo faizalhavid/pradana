@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pradana/models/data/Movie.dart';
-import 'package:pradana/models/data/RequestToken.dart';
 import 'package:pradana/providers/controllers/auth.dart';
 import 'package:pradana/providers/services/auth_api.dart';
 import 'package:pradana/providers/theme.dart';
@@ -148,11 +145,13 @@ class _MyAppState extends ConsumerState<MyApp> {
         };
         // Menangani rute khusus untuk rute yang memerlukan argumen.
         if (settings.name == '/dashboard/detail-movie') {
-          final Movie movie = settings.arguments as Movie;
-          final String uniqueId = UniqueKey().toString();
+          final args = settings.arguments as Map<String, dynamic>;
+
+          final Movie movie = args['movie'];
+          final String tag = args['tag'];
+
           return MaterialPageRoute(
-            builder: (context) =>
-                DetailMovieScreen(movie: movie, uniqueId: uniqueId),
+            builder: (context) => DetailMovieScreen(movie: movie, tag: tag),
           );
         }
 

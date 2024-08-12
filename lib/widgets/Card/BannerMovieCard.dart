@@ -95,7 +95,7 @@ class BannerMovieCard extends ConsumerWidget {
     return Stack(
       children: [
         Hero(
-          tag: movie.id,
+          tag: 'banner_${movie.id}',
           child: Stack(
             children: [
               ClipRRect(
@@ -148,7 +148,10 @@ class BannerMovieCard extends ConsumerWidget {
               onTap: () {
                 // Navigate to the detail movie screen
                 Navigator.pushNamed(context, '/dashboard/detail-movie',
-                    arguments: movie);
+                    arguments: {
+                      'movie': movie,
+                      'tag': 'banner_${movie.id}',
+                    });
               },
               child: Container(
                   padding: EdgeInsets.all(20),

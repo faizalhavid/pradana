@@ -32,10 +32,9 @@ import 'package:shimmer/shimmer.dart';
 /// - `DetailMovieScreen` ({Movie}): Konstruktor untuk `DetailMovieScreen`.
 class DetailMovieScreen extends ConsumerStatefulWidget {
   final Movie movie;
-  final String uniqueId;
+  final String tag;
 
-  const DetailMovieScreen(
-      {required this.uniqueId, required this.movie, super.key});
+  const DetailMovieScreen({required this.tag, required this.movie, super.key});
 
   @override
   _DetailMovieScreenState createState() => _DetailMovieScreenState();
@@ -71,6 +70,7 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.movie);
     final size = MediaQuery.of(context).size;
     final AsyncValue<Movie> movieAsyncValue =
         ref.watch(getMovieDetailProvider(widget.movie.id));
@@ -162,7 +162,7 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
         data: (movie) => Stack(
           children: [
             renderBackdropPath(size, movie),
-            renderOverviewInformation(size, movie, context, widget.uniqueId),
+            renderOverviewInformation(size, movie, context),
             movie.status == 'Released'
                 ? Positioned(
                     right: size.width * 0.2,
@@ -197,7 +197,7 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
                   color: Color.fromARGB(49, 255, 255, 255),
                 ),
                 child: Hero(
-                  tag: widget.uniqueId,
+                  tag: widget.movie.id,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Shimmer.fromColors(
@@ -284,12 +284,12 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
   }
 
   Column renderOverviewInformation(
-      Size size, Movie movie, BuildContext context, String uniqueId) {
+      Size size, Movie movie, BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        renderMoviePoster(size, movie, uniqueId),
+        renderMoviePoster(size, movie),
         Container(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -659,7 +659,7 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
     );
   }
 
-  Container renderMoviePoster(Size size, Movie movie, String uniqueId) {
+  Container renderMoviePoster(Size size, Movie movie) {
     return Container(
       padding: const EdgeInsets.all(10),
       height: size.height * 0.4,
@@ -668,7 +668,7 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
         color: Color.fromARGB(49, 255, 255, 255),
       ),
       child: Hero(
-        tag: uniqueId,
+        tag: movie.id,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: FadeInImage.assetNetwork(

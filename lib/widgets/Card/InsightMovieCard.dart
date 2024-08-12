@@ -96,19 +96,22 @@ class InsightMovieCard extends ConsumerWidget {
                   child: Stack(
                     children: [
                       Positioned.fill(
-                        child: FadeInImage.assetNetwork(
-                          placeholder: 'assets/images/placeholder.png',
-                          placeholderFit: BoxFit.cover,
-                          placeholderScale: 1,
-                          image:
-                              'https://image.tmdb.org/t/p/original/${movie.poster_path}',
-                          fit: BoxFit.cover,
-                          imageErrorBuilder: (context, error, stackTrace) {
-                            return Image.asset(
-                              'assets/images/placeholder.jpg',
-                              fit: BoxFit.cover,
-                            );
-                          },
+                        child: Hero(
+                          tag: 'insight_${movie.id}',
+                          child: FadeInImage.assetNetwork(
+                            placeholder: 'assets/images/placeholder.png',
+                            placeholderFit: BoxFit.cover,
+                            placeholderScale: 1,
+                            image:
+                                'https://image.tmdb.org/t/p/original/${movie.poster_path}',
+                            fit: BoxFit.cover,
+                            imageErrorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/placeholder.jpg',
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          ),
                         ),
                       ),
                       Positioned.fill(
@@ -119,7 +122,10 @@ class InsightMovieCard extends ConsumerWidget {
                             onTap: () {
                               Navigator.pushNamed(
                                   context, '/dashboard/detail-movie',
-                                  arguments: movie);
+                                  arguments: {
+                                    'movie': movie,
+                                    'tag': 'insight_${movie.id}',
+                                  });
                             },
                           ),
                         ),
