@@ -149,8 +149,10 @@ class _MyAppState extends ConsumerState<MyApp> {
         // Menangani rute khusus untuk rute yang memerlukan argumen.
         if (settings.name == '/dashboard/detail-movie') {
           final Movie movie = settings.arguments as Movie;
+          final String uniqueId = UniqueKey().toString();
           return MaterialPageRoute(
-            builder: (context) => DetailMovieScreen(movie: movie),
+            builder: (context) =>
+                DetailMovieScreen(movie: movie, uniqueId: uniqueId),
           );
         }
 

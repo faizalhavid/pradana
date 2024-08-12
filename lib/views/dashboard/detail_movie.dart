@@ -7,6 +7,7 @@ import 'package:pradana/models/colors.dart';
 import 'package:pradana/models/data/Movie.dart';
 import 'package:pradana/providers/controllers/movie.dart';
 import 'package:pradana/providers/services/movie_api.dart';
+import 'package:shimmer/shimmer.dart';
 
 /// Kelas `DetailMovieScreen` untuk menampilkan detail film.
 ///
@@ -31,8 +32,10 @@ import 'package:pradana/providers/services/movie_api.dart';
 /// - `DetailMovieScreen` ({Movie}): Konstruktor untuk `DetailMovieScreen`.
 class DetailMovieScreen extends ConsumerStatefulWidget {
   final Movie movie;
+  final String uniqueId;
 
-  const DetailMovieScreen({required this.movie, super.key});
+  const DetailMovieScreen(
+      {required this.uniqueId, required this.movie, super.key});
 
   @override
   _DetailMovieScreenState createState() => _DetailMovieScreenState();
@@ -105,71 +108,188 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
       }
     }
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, dynamic result) async {
-        Navigator.pop(context, result);
-      },
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            actions: [
-              IconButton(
-                  icon: const Icon(Icons.download, color: Colors.white),
-                  onPressed: () async {
-                    final filePathAsyncValue = ref.read(
-                        downloadMoviePosterProvider(widget.movie.poster_path));
-                    filePathAsyncValue.when(
-                      loading: () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Downloading...'))),
-                      error: (err, stack) => ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(content: Text('Error: $err'))),
-                      data: (filePath) => ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(
-                              content: Text('Downloaded to $filePath'))),
-                    );
-                  })
-            ]),
-        body: movieAsyncValue.when(
-          loading: () => Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Error: $err')),
-          data: (movie) => Stack(
-            children: [
-              renderBackdropPath(size, movie),
-              renderOverviewInformation(size, movie, context),
-              movie.status == 'Released'
-                  ? Positioned(
-                      right: size.width * 0.2,
-                      top: size.height * 0.2,
-                      child: Image.asset(
-                        'assets/icons/verified.png',
-                      ),
-                    )
-                  : SizedBox.shrink(),
-              renderScrollableBottomSheet(movie, handleWatchlistButton,
-                  handleFavoriteButton, isWatchlist, isFavorite),
-            ],
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
           ),
+          actions: [
+            IconButton(
+                icon: const Icon(Icons.download, color: Colors.white),
+                onPressed: () async {
+                  final filePathAsyncValue = ref.read(
+                      downloadMoviePosterProvider(widget.movie.poster_path));
+                  filePathAsyncValue.when(
+                    loading: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Downloading...'))),
+                    error: (err, stack) => ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text('Error: $err'))),
+                    data: (filePath) => ScaffoldMessenger.of(context)
+                        .showSnackBar(
+                            SnackBar(content: Text('Downloaded to $filePath'))),
+                  );
+                })
+          ]),
+      body: movieAsyncValue.when(
+        loading: () => renderLoadingState(size),
+        error: (err, stack) {
+          print(err);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.sync_problem,
+                color: ColorResources.gray,
+                size: 40,
+              ),
+              Text(
+                'Failed to get data',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(color: ColorResources.gray),
+              ),
+            ],
+          );
+        },
+        data: (movie) => Stack(
+          children: [
+            renderBackdropPath(size, movie),
+            renderOverviewInformation(size, movie, context, widget.uniqueId),
+            movie.status == 'Released'
+                ? Positioned(
+                    right: size.width * 0.2,
+                    top: size.height * 0.2,
+                    child: Image.asset(
+                      'assets/icons/verified.png',
+                    ),
+                  )
+                : SizedBox.shrink(),
+            renderScrollableBottomSheet(movie, handleWatchlistButton,
+                handleFavoriteButton, isWatchlist, isFavorite),
+          ],
         ),
       ),
     );
   }
 
+  Stack renderLoadingState(Size size) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                height: size.height * 0.4,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  color: Color.fromARGB(49, 255, 255, 255),
+                ),
+                child: Hero(
+                  tag: widget.uniqueId,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Shimmer.fromColors(
+                      child: Image.asset(
+                        'assets/images/placeholder.png',
+                      ),
+                      baseColor: ColorResources.neutral200,
+                      highlightColor: ColorResources.neutral100,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Shimmer.fromColors(
+                      baseColor: ColorResources.neutral200,
+                      highlightColor: ColorResources.neutral100,
+                      child: Container(
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: ColorResources.gray,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        width: size.width * 0.5,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Shimmer.fromColors(
+                      baseColor: ColorResources.neutral200,
+                      highlightColor: ColorResources.neutral100,
+                      child: Container(
+                        height: 15,
+                        decoration: BoxDecoration(
+                          color: ColorResources.gray,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        width: size.width * 0.8,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Shimmer.fromColors(
+                      baseColor: ColorResources.neutral200,
+                      highlightColor: ColorResources.neutral100,
+                      child: Container(
+                        height: 15,
+                        decoration: BoxDecoration(
+                          color: ColorResources.gray,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        width: size.width * 0.8,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Shimmer.fromColors(
+                      baseColor: ColorResources.neutral200,
+                      highlightColor: ColorResources.neutral100,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: ColorResources.gray,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        height: 65,
+                        width: size.width * 0.8,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
   Column renderOverviewInformation(
-      Size size, Movie movie, BuildContext context) {
+      Size size, Movie movie, BuildContext context, String uniqueId) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        renderMoviePoster(size, movie),
+        renderMoviePoster(size, movie, uniqueId),
         Container(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -539,7 +659,7 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
     );
   }
 
-  Container renderMoviePoster(Size size, Movie movie) {
+  Container renderMoviePoster(Size size, Movie movie, String uniqueId) {
     return Container(
       padding: const EdgeInsets.all(10),
       height: size.height * 0.4,
@@ -548,7 +668,7 @@ class _DetailMovieScreenState extends ConsumerState<DetailMovieScreen> {
         color: Color.fromARGB(49, 255, 255, 255),
       ),
       child: Hero(
-        tag: movie.id,
+        tag: uniqueId,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: FadeInImage.assetNetwork(

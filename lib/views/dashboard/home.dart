@@ -298,11 +298,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     'https://image.tmdb.org/t/p/w500' +
                                         actors[index].profile_path!),
                               ),
+                              SizedBox(height: 5),
                               Text(
                                 actors[index].name ?? '',
                                 style: Theme.of(context).textTheme.bodyMedium,
                                 overflow: TextOverflow.clip,
                                 softWrap: true,
+                                maxLines: 1,
                               ),
                             ],
                           ),
